@@ -3,21 +3,21 @@ package com.ucab.grupo_113_ing_software.tpa_server.model;
 import jakarta.persistence.*;
 
 @Entity
-public class Usuario {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "rol", discriminatorType = DiscriminatorType.STRING) // 👈 H2 usará esto para guardar si es SOCIO, VIP, etc.
+public abstract class Usuario {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, nullable = false) // 👈 Evita que dos personas se registren con la misma cédula
+    @Column(unique = true, nullable = false)
     private String cedula;
 
     @Column(nullable = false)
     private String clave;
 
-    @Enumerated(EnumType.STRING) // 👈 Le dice a H2 que guarde el rol como texto y no como un número
+    @Enumerated(EnumType.STRING)
+    @Column(name = "rol", insertable = false, updatable = false) // 👈 Lee la columna del discriminador, pero no la sobreescribe
     private Rol rol;
-
-    // (Aquí luego generaremos los getters, setters y constructores)
 }
-
