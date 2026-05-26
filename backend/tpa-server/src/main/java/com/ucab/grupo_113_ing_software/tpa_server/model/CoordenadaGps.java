@@ -41,6 +41,11 @@ public class CoordenadaGps {
     public CoordenadaGps() {
     }
 
+    public CoordenadaGps(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
@@ -59,6 +64,14 @@ public class CoordenadaGps {
 
     public double getLatitude() {
         return latitude;
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
     }
 
     public void setLatitude(double latitude) {

@@ -42,8 +42,7 @@ public class UsuarioController {
     public ResponseEntity<Usuario> login(@RequestBody LoginPayload loginPayload) {
         String cedula = loginPayload.body().cedula();
         String clave = loginPayload.body().clave();
-        if (usuarioService.authenticate(cedula, clave))
-        {
+        if (usuarioService.authenticate(cedula, clave)) {
             Usuario user = usuarioService.findByCedula(cedula);
             return ResponseEntity.ok().body(user);
         } else {

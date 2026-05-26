@@ -4,4 +4,4 @@ import com.ucab.grupo_113_ing_software.tpa_server.model.CoordenadaGps;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 @Repository
-public interface GpsCoordinateRepository extends JpaRepository<CoordenadaGps, Long> {}
+public interface GpsCoordenadasRepository extends JpaRepository<CoordenadaGps, Long> {}

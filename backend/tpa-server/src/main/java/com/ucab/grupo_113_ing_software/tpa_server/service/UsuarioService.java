@@ -16,8 +16,8 @@ public class UsuarioService {
     }
 
     public boolean authenticate(String cedula, String password) {
-        Usuario user = findByCedula(cedula);
-        return user != null && user.getClave().equals(password);
+        Usuario u = findByCedula(cedula);
+        return u != null && u.getClave().equals(password);
     }
 
 
