@@ -1,13 +1,12 @@
 package com.ucab.grupo_113_ing_software.tpa_server.model;
 
 import jakarta.persistence.*;
-import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "gps_coordinate")
-public class GpsCoordinate {
+public class CoordenadaGps {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -24,7 +23,7 @@ public class GpsCoordinate {
     @Column(nullable = false)
     private LocalDateTime timestamp;
 
-    public GpsCoordinate(long id, double latitude, double longitude, double speed, LocalDateTime timestamp) {
+    public CoordenadaGps(long id, double latitude, double longitude, double speed, LocalDateTime timestamp) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
@@ -32,14 +31,14 @@ public class GpsCoordinate {
         this.timestamp = timestamp;
     }
 
-    public GpsCoordinate(double latitude, double longitude, double speed) {
+    public CoordenadaGps(double latitude, double longitude, double speed) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.speed = speed;
         timestamp = LocalDateTime.now();
     }
 
-    public GpsCoordinate() {
+    public CoordenadaGps() {
     }
 
     public LocalDateTime getTimestamp() {

@@ -7,11 +7,11 @@ import jakarta.persistence.Transient;
 @Entity
 @DiscriminatorValue("SOCIO")
 public class Socio extends Usuario {
-    
-    @Transient // 👈 H2 ignorará esto por completo
-    private boolean enCola = false; 
 
-    @Transient // 👈 H2 ignorará esto por completo
+    @Transient
+    private boolean enCola = false;
+
+    @Transient
     private int idEstacionActual;
 
 

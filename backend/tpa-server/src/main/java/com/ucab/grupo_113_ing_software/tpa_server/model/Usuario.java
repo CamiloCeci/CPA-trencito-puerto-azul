@@ -24,6 +24,11 @@ public abstract class Usuario {
     public Usuario() {
     }
 
+    public Usuario(String cedula, String clave) {
+        this.cedula = cedula;
+        this.clave = clave;
+    }
+
     public Usuario(Long id, String cedula, String clave, Rol rol) {
         this.id = id;
         this.cedula = cedula;
