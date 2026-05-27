@@ -180,6 +180,9 @@
             <h2>Crear estacion</h2>
             <span class="modal-label">Nombre de la estación</span>
             <input type="text" class="input-grey" id="newStationNameInput" placeholder="">
+            
+            <div id="createStationErrorMsg" style="color: #ff3b30; font-weight: 600; margin-top: 10px; display: none;"></div>
+
             <div style="margin-top: 20px; width: 100%;">
                 <button class="btn-pill-blue" onclick="startCreateStation()">Siguiente</button>
                 <button class="btn-pill-grey" onclick="toggleModal('createStationModal', false)">Cancelar</button>
@@ -357,15 +360,33 @@
         function openCreateStationModal() {
             toggleModal('manageStationsModal', false);
             document.getElementById('newStationNameInput').value = '';
+            document.getElementById('createStationErrorMsg').style.display = 'none';
             toggleModal('createStationModal', true);
         }
 
         function startCreateStation() {
             const name = document.getElementById('newStationNameInput').value.trim();
+            const errorMsgEl = document.getElementById('createStationErrorMsg');
+            
             if(!name) {
+                errorMsgEl.innerText = "Por favor ingrese un nombre para la estación.";
+                errorMsgEl.style.display = "block";
                 alert("Por favor ingrese un nombre para la estación.");
                 return;
             }
+            
+            // Validar que no exista otra estación con el mismo nombre
+            const nameExists = Object.values(stationData).some(
+                station => station.name.toLowerCase() === name.toLowerCase()
+            );
+            if (nameExists) {
+                errorMsgEl.innerText = "Ya existe una estación con el mismo nombre";
+                errorMsgEl.style.display = "block";
+                alert("Ya existe una estación con el mismo nombre");
+                return;
+            }
+            
+            errorMsgEl.style.display = "none";
             toggleModal('createStationModal', false);
             
             // Cerramos sidebar si estaba abierta
