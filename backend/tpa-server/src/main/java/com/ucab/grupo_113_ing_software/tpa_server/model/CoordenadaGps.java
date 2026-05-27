@@ -17,7 +17,7 @@ public class CoordenadaGps {
     @Column(nullable = false)
     private double longitude;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private double speed;
 
     @Column(nullable = false)

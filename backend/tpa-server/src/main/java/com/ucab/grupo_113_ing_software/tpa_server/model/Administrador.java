@@ -15,6 +15,11 @@ public class Administrador extends Operador {
         super(id, cedula, clave); // Llama al constructor de Operador
         // Spring H2 sabrá que es un administrador por el @DiscriminatorValue
     }
-    
-    // Aquí irían las funciones de control total luego
+
+
+
+
+
+
+
 }
