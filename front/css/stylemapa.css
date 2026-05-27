@@ -1,0 +1,567 @@
+:root {
+    --bg-main: #030213;
+    --text-dark: #0c0b18;
+    --text-muted: #717182;
+    --accent-blue: #1F3FA6;
+    --radius-lg: 16px;
+    --radius-md: 8px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+}
+
+body,
+html {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    background-color: #f3f4f6;
+}
+
+.app-screen {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* ==========================================================================
+   ÁREA DEL MAPA (Simulación de Lienzo Geográfico)
+   ========================================================================== */
+.map-area {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+}
+
+.map-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+/* Controles de Zoom */
+.zoom-controls {
+    position: absolute;
+    top: 20px;
+    right: 280px;
+    /* Moved slightly so they don't overlap sidebar/panels if needed, or we can keep them left */
+    /* Wait, I'll keep them left, just moved down */
+    left: 20px;
+    top: 80px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    z-index: 10;
+}
+
+.zoom-controls button {
+    border: none;
+    background: transparent;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--text-dark);
+}
+
+.zoom-controls button:hover {
+    background-color: #f4f4f5;
+}
+
+.zoom-controls .divider {
+    height: 1px;
+    background-color: #e4e4e7;
+}
+
+/* ==========================================================================
+   SIDEBAR IZQUIERDA (Gestiones)
+   ========================================================================== */
+.left-sidebar {
+    position: absolute;
+    top: 100px;
+    left: -240px;
+    bottom: 100px;
+    width: 240px;
+    background: white;
+    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+    transition: left 0.3s ease;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+}
+
+.left-sidebar.open {
+    left: 0;
+}
+
+.toggle-btn {
+    position: absolute;
+    top: 20px;
+    right: -48px;
+    background: white;
+    border: none;
+    width: 48px;
+    height: 48px;
+    border-radius: 0 12px 12px 0;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dark);
+}
+
+.toggle-btn:hover {
+    background: #f4f4f5;
+}
+
+.sidebar-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sidebar-content h2 {
+    font-size: 20px;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    border-bottom: 2px solid #eff6ff;
+    padding-bottom: 12px;
+}
+
+.sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+    text-align: left;
+}
+
+.sidebar-item:hover {
+    background: #eff6ff;
+    color: var(--accent-blue);
+}
+
+.sidebar-item svg {
+    flex-shrink: 0;
+}
+
+/* Marcadores de Estaciones */
+.station-marker {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+}
+
+.marker-container {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gps-pin {
+    width: 36px;
+    height: 36px;
+    border-radius: 50% 50% 50% 0;
+    transform: rotate(-45deg);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease;
+}
+
+.gps-pin::after {
+    content: '';
+    width: 14px;
+    height: 14px;
+    background: white;
+    border-radius: 50%;
+}
+
+.pin-blue {
+    background-color: var(--accent-blue);
+}
+
+.marker-container:hover .gps-pin {
+    transform: rotate(-45deg) scale(1.15);
+}
+
+/* Badge de pasajeros en espera */
+.badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ef4444;
+    /* Bright red from image */
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+    z-index: 2;
+}
+
+/* Tooltip nativo al pasar el mouse */
+.tooltip {
+    position: absolute;
+    top: 54px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.station-marker:hover .tooltip {
+    opacity: 1;
+}
+
+/* Elemento Tren */
+.train-element {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    font-size: 48px;
+    z-index: 6;
+    transition: all 0.1s linear;
+    user-select: none;
+}
+
+/* ==========================================================================
+   PANEL FLOTANTE DE INFORMACIÓN (DERECHA)
+   ========================================================================== */
+.control-panel {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    padding: 24px;
+    width: 240px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.control-panel h3 {
+    font-size: 14px;
+    text-align: center;
+    color: var(--text-dark);
+}
+
+.seats-counter {
+    font-size: 72px;
+    font-weight: 800;
+    color: var(--text-dark);
+    /* In the image it's black text */
+    text-align: center;
+    margin: 5px 0;
+}
+
+/* Botonera */
+.btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s ease;
+    width: 100%;
+}
+
+.btn-blue {
+    background-color: var(--accent-blue);
+    color: white;
+}
+
+.btn-blue:hover {
+    background-color: #0044b3;
+}
+
+.btn-dark {
+    background-color: var(--bg-main);
+    color: white;
+}
+
+.btn-dark:hover {
+    background-color: #161527;
+}
+
+.btn-outline {
+    background: #e5e7eb;
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.btn-outline:hover {
+    background-color: #d1d5db;
+}
+
+/* Footer */
+.app-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #a1a1aa;
+    /* Light gray from image bottom */
+    color: white;
+    text-align: center;
+    padding: 12px;
+    font-size: 12px;
+    z-index: 9;
+}
+
+/* ==========================================================================
+   VENTANAS MODALES (Diálogos Flotantes)
+   ========================================================================== */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.4);
+    display: none;
+    /* Controlado por JS */
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: white;
+    padding: 32px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.modal-content h2 {
+    font-size: 28px;
+    margin-bottom: 24px;
+    color: var(--text-dark);
+    font-weight: 700;
+}
+
+.modal-content p {
+    font-size: 16px;
+    color: #4b5563;
+    margin-bottom: 12px;
+}
+
+.modal-content .highlight {
+    font-weight: 700;
+    color: var(--accent-blue);
+}
+
+.modal-icon {
+    margin-bottom: 15px;
+}
+
+.text-blue {
+    color: var(--accent-blue);
+}
+
+/* Nuevos Estilos para Botones y Campos de los Modales */
+.btn-pill-blue {
+    background-color: #0044cc;
+    color: white;
+    border-radius: 24px;
+    padding: 14px 24px;
+    font-size: 18px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    margin-bottom: 10px;
+    transition: background-color 0.2s;
+}
+
+.btn-pill-blue:hover {
+    background-color: #003399;
+}
+
+.btn-pill-grey {
+    background-color: #a3a3a3;
+    color: white;
+    border-radius: 24px;
+    padding: 10px 30px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+
+.btn-pill-grey:hover {
+    background-color: #888888;
+}
+
+.input-grey {
+    background-color: #a3a3a3;
+    color: white;
+    border-radius: 24px;
+    padding: 10px 20px;
+    font-size: 18px;
+    font-weight: 600;
+    border: none;
+    width: 100%;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.input-grey::placeholder {
+    color: #e0e0e0;
+}
+
+.input-grey-text {
+    background-color: #a3a3a3;
+    color: white;
+    border-radius: 24px;
+    padding: 6px 20px;
+    font-size: 18px;
+    font-weight: 700;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+.modal-label {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 5px;
+    display: block;
+}
+
+.station-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.btn-station-item {
+    background-color: #a3a3a3;
+    color: white;
+    border-radius: 24px;
+    padding: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-station-item.active {
+    background-color: #0044cc;
+}
+
+/* Modificar puestos modal styles */
+.puestos-display {
+    background-color: #a3a3a3;
+    color: white;
+    border-radius: 24px;
+    padding: 12px 36px;
+    font-size: 24px;
+    font-weight: 700;
+    display: inline-block;
+    margin-bottom: 20px;
+    min-width: 150px;
+    text-align: center;
+}
+
+.puestos-btn-container {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.btn-adjust-blue {
+    background-color: #0044cc;
+    color: white;
+    border-radius: 24px;
+    font-size: 28px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    width: 100px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.btn-adjust-blue:hover {
+    background-color: #003399;
+}
+
+.btn-adjust-red {
+    background-color: #ff3b30;
+    color: white;
+    border-radius: 24px;
+    font-size: 28px;
+    font-weight: 700;
+    border: none;
+    cursor: pointer;
+    width: 100px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.btn-adjust-red:hover {
+    background-color: #d63025;
+}
