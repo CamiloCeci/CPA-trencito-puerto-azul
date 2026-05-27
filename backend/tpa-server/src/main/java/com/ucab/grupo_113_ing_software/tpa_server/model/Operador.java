@@ -12,8 +12,8 @@ public class Operador extends Usuario {
     }
 
     public Operador(Long id, String cedula, String clave) {
-        super(id, cedula, clave, Rol.OPERADOR); 
+        super(id, cedula, clave, Rol.OPERADOR);
     }
-    
+
     // Aquí irían sus funciones específicas luego
 }

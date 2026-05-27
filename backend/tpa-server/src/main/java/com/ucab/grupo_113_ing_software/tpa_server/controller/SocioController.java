@@ -24,4 +24,5 @@ public class SocioController {
         return ResponseEntity.status(HttpStatus.CREATED).body(usuarioRepository.save(usuario));
     }
 
+
 }

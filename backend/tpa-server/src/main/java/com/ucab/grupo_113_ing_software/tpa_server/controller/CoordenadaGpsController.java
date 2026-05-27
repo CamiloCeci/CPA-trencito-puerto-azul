@@ -3,7 +3,6 @@ package com.ucab.grupo_113_ing_software.tpa_server.controller;
 import com.ucab.grupo_113_ing_software.tpa_server.model.CoordenadaGps;
 import com.ucab.grupo_113_ing_software.tpa_server.repository.GpsCoordenadasRepository;
 import com.ucab.grupo_113_ing_software.tpa_server.service.GpsService;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +20,7 @@ public class CoordenadaGpsController {
 
     @GetMapping("/")
     public ResponseEntity<CoordenadaGps> getCoordenadaGps() {
-        return gpsCoordenadasRepository.findById((long) 1).map(coord ->  ResponseEntity.ok().body(coord)).orElse(ResponseEntity.notFound().build());
+        return gpsCoordenadasRepository.findById((long) 1).map(coord -> ResponseEntity.ok().body(coord)).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{latitude}/{longitude}/")

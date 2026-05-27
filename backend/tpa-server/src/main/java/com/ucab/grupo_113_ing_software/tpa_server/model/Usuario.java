@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
-@DiscriminatorColumn(name = "rol", discriminatorType = DiscriminatorType.STRING) // 👈 H2 usará esto para guardar si es SOCIO, VIP, etc.
+@DiscriminatorColumn(name = "rol", discriminatorType = DiscriminatorType.STRING)
 public abstract class Usuario {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,7 +18,7 @@ public abstract class Usuario {
     private String clave;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "rol", insertable = false, updatable = false) // 👈 Lee la columna del discriminador, pero no la sobreescribe
+    @Column(name = "rol", insertable = false, updatable = false)
     private Rol rol;
 
     public Usuario() {
