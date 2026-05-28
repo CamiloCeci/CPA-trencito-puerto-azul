@@ -29,468 +29,367 @@ html {
 }
 
 /* ==========================================================================
-   ÁREA DEL MAPA (Simulación de Lienzo Geográfico)
+   ÁREA DEL MAPA (Lienzo Geográfico)
    ========================================================================== */
 .map-area {
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+    background: #eff6ff;
 }
 
-.map-grid {
+/* Estilos de los pines de las estaciones */
+.station-node {
     position: absolute;
-    inset: 0;
-    opacity: 0.4;
-    pointer-events: none;
-}
-
-/* Controles de Zoom */
-.zoom-controls {
-    position: absolute;
-    top: 20px;
-    right: 280px;
-    /* Moved slightly so they don't overlap sidebar/panels if needed, or we can keep them left */
-    /* Wait, I'll keep them left, just moved down */
-    left: 20px;
-    top: 80px;
-    background: white;
-    border-radius: var(--radius-md);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    display: flex;
-    flex-direction: column;
     z-index: 10;
 }
 
-.zoom-controls button {
-    border: none;
-    background: transparent;
-    width: 40px;
-    height: 40px;
-    font-size: 20px;
+.marker-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.gps-pin {
+    width: 24px;
+    height: 24px;
+    border-radius: 50% 50% 50% 0;
+    background: var(--accent-blue);
+    transform: rotate(-45deg);
     cursor: pointer;
-    color: var(--text-dark);
+    box-shadow: -2px 2px 4px rgba(0,0,0,0.2);
+    transition: transform 0.2s, background-color 0.2s;
 }
 
-.zoom-controls button:hover {
-    background-color: #f4f4f5;
+.gps-pin::after {
+    content: '';
+    width: 10px;
+    height: 10px;
+    margin: 7px 0 0 7px;
+    background: #fff;
+    position: absolute;
+    border-radius: 50%;
 }
 
-.zoom-controls .divider {
-    height: 1px;
-    background-color: #e4e4e7;
+.gps-pin:hover {
+    background-color: #0044cc;
+}
+
+.pin-blue { background: #0044cc; }
+
+/* Tooltip nativo */
+.tooltip {
+    position: absolute;
+    bottom: 35px;
+    background-color: rgba(12, 11, 24, 0.9);
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: var(--radius-md);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    pointer-events: none;
+}
+
+/* Badge del contador */
+.badge {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
 }
 
 /* ==========================================================================
-   SIDEBAR IZQUIERDA (Gestiones)
+   INTERFAZ DE USUARIO PERIFÉRICA
    ========================================================================== */
+.top-info-bar {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    z-index: 1100; /* 👈 Subido de 100 a 1100 para quedar sobre el mapa */
+    display: flex;
+    gap: 12px;
+}
+
+.info-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    padding: 10px 20px;
+    border-radius: 30px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.info-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.info-value {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.value-blue { color: #0044cc; }
+
+/* Sidebar Izquierda */
 .left-sidebar {
     position: absolute;
-    top: 100px;
-    left: -240px;
-    bottom: 100px;
-    width: 240px;
-    background: white;
-    border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
-    transition: left 0.3s ease;
-    z-index: 20;
-    display: flex;
-    flex-direction: column;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    box-shadow: 5px 0 30px rgba(0,0,0,0.05);
+    z-index: 1200; /* 👈 Subido de 200 a 1200 para ganarle a Leaflet */
+    transform: translateX(-100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .left-sidebar.open {
-    left: 0;
+    transform: translateX(0);
 }
 
 .toggle-btn {
     position: absolute;
     top: 20px;
-    right: -48px;
+    left: 300px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
     background: white;
     border: none;
-    width: 48px;
-    height: 48px;
-    border-radius: 0 12px 12px 0;
-    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-dark);
+    z-index: 1210; /* 👈 Subido de 210 a 1210 para que el botón se mueva con el menú */
+    transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s;
 }
 
-.toggle-btn:hover {
-    background: #f4f4f5;
+.left-sidebar.open .toggle-btn {
+    left: 216px;
+    box-shadow: none;
+    background: transparent;
 }
 
 .sidebar-content {
-    padding: 24px;
+    padding: 40px 24px;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 24px;
 }
 
 .sidebar-content h2 {
     font-size: 20px;
+    font-weight: 700;
     color: var(--text-dark);
     margin-bottom: 8px;
-    border-bottom: 2px solid #eff6ff;
-    padding-bottom: 12px;
 }
 
-.sidebar-item {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px;
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-md);
-    font-size: 16px;
-    font-weight: 600;
+.btn-sidebar {
+    background: #f3f4f6;
     color: var(--text-dark);
-    cursor: pointer;
-    transition: background 0.2s ease, color 0.2s ease;
-    text-align: left;
-}
-
-.sidebar-item:hover {
-    background: #eff6ff;
-    color: var(--accent-blue);
-}
-
-.sidebar-item svg {
-    flex-shrink: 0;
-}
-
-/* Marcadores de Estaciones */
-.station-marker {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    z-index: 5;
-}
-
-.marker-container {
-    position: relative;
-    width: 48px;
-    height: 48px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.gps-pin {
-    width: 36px;
-    height: 36px;
-    border-radius: 50% 50% 50% 0;
-    transform: rotate(-45deg);
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: -4px 4px 10px rgba(0, 0, 0, 0.3);
-    transition: transform 0.2s ease;
-}
-
-.gps-pin::after {
-    content: '';
-    width: 14px;
-    height: 14px;
-    background: white;
-    border-radius: 50%;
-}
-
-.pin-blue {
-    background-color: var(--accent-blue);
-}
-
-.marker-container:hover .gps-pin {
-    transform: rotate(-45deg) scale(1.15);
-}
-
-/* Badge de pasajeros en espera */
-.badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    background-color: #ef4444;
-    /* Bright red from image */
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: bold;
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
-    z-index: 2;
-}
-
-/* Tooltip nativo al pasar el mouse */
-.tooltip {
-    position: absolute;
-    top: 54px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: white;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    white-space: nowrap;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease;
-}
-
-.station-marker:hover .tooltip {
-    opacity: 1;
-}
-
-/* Elemento Tren */
-.train-element {
-    position: absolute;
-    transform: translate(-50%, -50%);
-    font-size: 48px;
-    z-index: 6;
-    transition: all 0.1s linear;
-    user-select: none;
-}
-
-/* ==========================================================================
-   PANEL FLOTANTE DE INFORMACIÓN (DERECHA)
-   ========================================================================== */
-.control-panel {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    background: white;
+    border: none;
+    padding: 14px 18px;
     border-radius: var(--radius-lg);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
-    padding: 24px;
-    width: 240px;
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.control-panel h3 {
-    font-size: 14px;
-    text-align: center;
-    color: var(--text-dark);
-}
-
-.seats-counter {
-    font-size: 72px;
-    font-weight: 800;
-    color: var(--text-dark);
-    /* In the image it's black text */
-    text-align: center;
-    margin: 5px 0;
-}
-
-/* Botonera */
-.btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px;
     font-size: 14px;
     font-weight: 600;
-    border-radius: var(--radius-md);
+    text-align: left;
     cursor: pointer;
-    border: none;
-    transition: background 0.2s ease;
-    width: 100%;
+    transition: all 0.2s;
 }
 
-.btn-blue {
-    background-color: var(--accent-blue);
-    color: white;
-}
-
-.btn-blue:hover {
-    background-color: #0044b3;
-}
-
-.btn-dark {
-    background-color: var(--bg-main);
-    color: white;
-}
-
-.btn-dark:hover {
-    background-color: #161527;
-}
-
-.btn-outline {
+.btn-sidebar:hover {
     background: #e5e7eb;
-    color: var(--text-dark);
-    font-weight: 600;
-}
-
-.btn-outline:hover {
-    background-color: #d1d5db;
-}
-
-/* Footer */
-.app-footer {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background-color: #a1a1aa;
-    /* Light gray from image bottom */
-    color: white;
-    text-align: center;
-    padding: 12px;
-    font-size: 12px;
-    z-index: 9;
+    transform: translateY(-1px);
 }
 
 /* ==========================================================================
-   VENTANAS MODALES (Diálogos Flotantes)
+   ESTILOS DE MODALES (Ventanería Emergente)
    ========================================================================== */
 .modal-overlay {
     position: fixed;
     inset: 0;
-    background-color: rgba(0, 0, 0, 0.4);
-    display: none;
-    /* Controlado por JS */
+    background-color: rgba(12, 11, 24, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 100;
 }
 
-.modal-content {
+.modal-card {
     background: white;
+    border-radius: 32px;
     padding: 32px;
-    border-radius: var(--radius-lg);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-    width: 90%;
+    width: 100%;
     max-width: 400px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
     text-align: center;
+}
+
+.modal-card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+}
+
+.modal-description {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+}
+
+.modal-actions-horizontal {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.btn-modal-cancel {
+    flex: 1;
+    background: #f3f4f6;
+    color: var(--text-dark);
+    border: none;
+    padding: 14px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-modal-cancel:hover { background: #e5e7eb; }
+
+.btn-modal-confirm {
+    flex: 1;
+    background: #0044cc;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-modal-confirm:hover { background: #0033aa; }
+
+.btn-modal-delete {
+    flex: 1;
+    background: #ef4444;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-modal-delete:hover { background: #dc2626; }
+
+/* Horarios Modal */
+.time-inputs-container {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-bottom: 16px;
+}
+
+.time-field {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    gap: 6px;
+    width: 100px;
 }
 
-.modal-content h2 {
-    font-size: 28px;
-    margin-bottom: 24px;
-    color: var(--text-dark);
+.time-field label {
+    font-size: 11px;
     font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-align: left;
 }
 
-.modal-content p {
-    font-size: 16px;
-    color: #4b5563;
-    margin-bottom: 12px;
-}
-
-.modal-content .highlight {
-    font-weight: 700;
-    color: var(--accent-blue);
-}
-
-.modal-icon {
-    margin-bottom: 15px;
-}
-
-.text-blue {
-    color: var(--accent-blue);
-}
-
-/* Nuevos Estilos para Botones y Campos de los Modales */
-.btn-pill-blue {
-    background-color: #0044cc;
-    color: white;
-    border-radius: 24px;
-    padding: 14px 24px;
-    font-size: 18px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
+.time-field input {
     width: 100%;
-    margin-bottom: 10px;
-    transition: background-color 0.2s;
-}
-
-.btn-pill-blue:hover {
-    background-color: #003399;
-}
-
-.btn-pill-grey {
-    background-color: #a3a3a3;
-    color: white;
-    border-radius: 24px;
-    padding: 10px 30px;
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    border: 2px solid #e5e7eb;
     font-size: 16px;
     font-weight: 700;
-    border: none;
-    cursor: pointer;
-    margin-top: 10px;
-    transition: background-color 0.2s;
-}
-
-.btn-pill-grey:hover {
-    background-color: #888888;
-}
-
-.input-grey {
-    background-color: #a3a3a3;
-    color: white;
-    border-radius: 24px;
-    padding: 10px 20px;
-    font-size: 18px;
-    font-weight: 600;
-    border: none;
-    width: 100%;
     text-align: center;
-    margin-bottom: 15px;
-}
-
-.input-grey::placeholder {
-    color: #e0e0e0;
-}
-
-.input-grey-text {
-    background-color: #a3a3a3;
-    color: white;
-    border-radius: 24px;
-    padding: 6px 20px;
-    font-size: 18px;
-    font-weight: 700;
-    display: inline-block;
-    margin-bottom: 10px;
-}
-
-.modal-label {
-    font-size: 18px;
-    font-weight: 700;
     color: var(--text-dark);
-    margin-bottom: 5px;
-    display: block;
+    outline: none;
 }
 
-.station-list {
+.time-field input:focus { border-color: #0044cc; }
+
+.error-text-modal {
+    color: #ef4444;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+/* Crear Estación Modal Input */
+.input-container-modal {
+    margin-bottom: 16px;
+}
+
+.input-container-modal input {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: var(--radius-lg);
+    border: 2px solid #e5e7eb;
+    font-size: 14px;
+    font-weight: 500;
+    outline: none;
+}
+
+.input-container-modal input:focus { border-color: #0044cc; }
+
+/* Eliminar Estación Modal List */
+.station-list-scrollable {
+    max-height: 200px;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 8px;
-    width: 100%;
-    margin-bottom: 20px;
-    max-height: 200px;
-    overflow-y: auto;
+    margin-bottom: 24px;
+    padding-right: 4px;
 }
 
 .btn-station-item {
-    background-color: #a3a3a3;
-    color: white;
+    width: 100%;
+    text-align: left;
+    background-color: #f3f4f6;
+    color: var(--text-dark);
     border-radius: 24px;
     padding: 10px;
     font-size: 16px;
@@ -502,6 +401,7 @@ html {
 
 .btn-station-item.active {
     background-color: #0044cc;
+    color: white;
 }
 
 /* Modificar puestos modal styles */
@@ -533,35 +433,40 @@ html {
     font-size: 28px;
     font-weight: 700;
     border: none;
+    width: 60px;
+    height: 44px;
     cursor: pointer;
-    width: 100px;
-    height: 60px;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s;
 }
 
-.btn-adjust-blue:hover {
-    background-color: #003399;
+.btn-adjust-blue:hover { background-color: #0033aa; }
+
+/* ==========================================================================
+   COMPLEMENTOS ADAPTATIVOS PARA LEAFLET
+   ========================================================================== */
+.station-marker-leaflet {
+    position: absolute;
 }
 
-.btn-adjust-red {
-    background-color: #ff3b30;
-    color: white;
-    border-radius: 24px;
-    font-size: 28px;
-    font-weight: 700;
-    border: none;
-    cursor: pointer;
-    width: 100px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
+.station-marker-leaflet .tooltip {
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    visibility: visible;
+    opacity: 1;
 }
 
-.btn-adjust-red:hover {
-    background-color: #d63025;
+.station-marker-leaflet .marker-container {
+    transform: translate(0, 0);
+}
+
+/* ==========================================================================
+   POSICIONAMIENTO PERSONALIZADO DEL ZOOM DE LEAFLET
+   ========================================================================== */
+.leaflet-top.leaflet-right {
+    top: 65px !important;    /* 👈 Ajusta este número para bajarlo más o subirlo */
+    right: 20px !important;  /* Alínealo perfectamente con el borde de tu tarjeta */
 }

@@ -4,485 +4,124 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mapa - Trencito Puerto Azul</title>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    
     <link rel="stylesheet" href="css/stylemapa.css">
 </head>
 <body>
 
     <div class="app-screen">
-        <!-- Sidebar Izquierda para Gestiones -->
         <div class="left-sidebar" id="leftSidebar">
             <button class="toggle-btn" onclick="toggleSidebar()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
             </button>
             <div class="sidebar-content">
                 <h2>Gestiones</h2>
-                <button class="sidebar-item" onclick="openServiceModal()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Servicio
-                </button>
-                <button class="sidebar-item" onclick="toggleModal('manageStationsModal', true)">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                    Estaciones
-                </button>
-                <button class="sidebar-item" onclick="openPuestosModal()">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    Puestos
-                </button>
+                <button class="btn-sidebar" onclick="openServiceModal()">Modificar horario de servicio</button>
+                <button class="btn-sidebar" onclick="openPuestosModal()">Modificar puestos del tren</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); openCreateStationModal();">Crear estación</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); openDeleteStationModal();">Eliminar estación</button>
             </div>
         </div>
 
-        <div class="map-area" id="mapArea" onclick="handleMapClick(event)">
-            <div class="map-grid">
-                <svg width="100%" height="100%">
-                    <pattern id="gridPattern" width="40" height="40" patternUnits="userSpaceOnUse">
-                        <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="0.5" />
-                    </pattern>
-                    <rect width="100%" height="100%" fill="url(#gridPattern)" />
-                </svg>
-            </div>
+        <div class="map-area" id="map"></div>
 
-            <div id="stationsContainer">
-                <div class="station-marker" id="station-div-1" style="left: 30%; top: 40%;" onclick="openStation('1', 'Zona naútica', 5)">
-                    <div class="marker-container">
-                        <div class="gps-pin pin-blue"></div>
-                        <div class="badge" id="badge-1">5</div>
+        <div class="top-info-bar">
+            <div class="info-card">
+                <span class="info-label">Puestos Libres:</span>
+                <span class="info-value value-blue" id="seatsCounter">9</span>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="serviceModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Horario de Servicio</h3>
+                <p class="modal-description">Establezca el rango de horas en el que opera el trencito.</p>
+                <div class="time-inputs-container">
+                    <div class="time-field">
+                        <label>Inicio</label>
+                        <input type="text" id="serviceStartInput" placeholder="00:00" oninput="validateTimeInput(this)">
                     </div>
-                    <div class="tooltip">Zona naútica</div>
-                </div>
-
-                <div class="station-marker" id="station-div-2" style="left: 70%; top: 30%;" onclick="openStation('2', 'Santa Maria', 5)">
-                    <div class="marker-container">
-                        <div class="gps-pin pin-blue"></div>
-                        <div class="badge" id="badge-2">5</div>
+                    <div class="time-field">
+                        <label>Fin</label>
+                        <input type="text" id="serviceEndInput" placeholder="00:00" oninput="validateTimeInput(this)">
                     </div>
-                    <div class="tooltip">Santa Maria</div>
                 </div>
+                <div id="serviceErrorMsg" class="error-text-modal" style="display: none;">Formato u horario inválido</div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('serviceModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmServiceHours()">Confirmar</button>
+                </div>
+            </div>
+        </div>
 
-                <div class="station-marker" id="station-div-3" style="left: 80%; top: 70%;" onclick="openStation('3', 'La niña', 5)">
-                    <div class="marker-container">
-                        <div class="gps-pin pin-blue"></div>
-                        <div class="badge" id="badge-3">5</div>
+        <div class="modal-overlay" id="puestosModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Modificar Puestos</h3>
+                <p class="modal-description">Ajuste la cantidad de asientos libres disponibles actualmente en el tren.</p>
+                <div class="puestos-display" id="puestosTempCount">9</div>
+                <div class="puestos-btn-container">
+                    <button class="btn-adjust-blue" onclick="alterTempSeats(-1)">-</button>
+                    <button class="btn-adjust-blue" onclick="alterTempSeats(1)">+</button>
+                </div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('puestosModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmSeatsChanges()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="stationModal" style="display: none;">
+            <div class="modal-card">
+                <h3 id="modalStationName">Nombre Estación</h3>
+                <p class="modal-description">Personas esperando en la cola actualmente:</p>
+                <div class="puestos-display" id="modalWaitingCount">0</div>
+                <div class="puestos-btn-container">
+                    <button class="btn-adjust-blue" onclick="alterTempQueue(-1)">-</button>
+                    <button class="btn-adjust-blue" onclick="alterTempQueue(1)">+</button>
+                </div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('stationModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmQueueChanges()">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="createStationModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Crear Nueva Estación</h3>
+                <p class="modal-description">Asigne un nombre a la estación. Luego de confirmar, haga clic en el mapa para ubicarla.</p>
+                <div class="input-container-modal">
+                    <input type="text" id="newStationNameInput" placeholder="Ej: Estación Piscina" autocomplete="off">
+                </div>
+                <div id="createStationErrorMsg" class="error-text-modal" style="display: none;">El nombre ya existe o es inválido</div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('createStationModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="startCreateStation()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="deleteStationModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Eliminar Estación</h3>
+                <p class="modal-description">Seleccione la estación que desea remover permanentemente del sistema:</p>
+                <div class="station-list-scrollable" id="deleteStationList">
                     </div>
-                    <div class="tooltip">La niña</div>
-                </div>
-
-                <div class="station-marker" id="station-div-4" style="left: 20%; top: 80%;" onclick="openStation('4', 'La Pinta', 5)">
-                    <div class="marker-container">
-                        <div class="gps-pin pin-blue"></div>
-                        <div class="badge" id="badge-4">5</div>
-                    </div>
-                    <div class="tooltip">La Pinta</div>
-                </div>
-
-                <div class="station-marker" id="station-div-5" style="left: 50%; top: 20%;" onclick="openStation('5', 'Playa', 5)">
-                    <div class="marker-container">
-                        <div class="gps-pin pin-blue"></div>
-                        <div class="badge" id="badge-5">5</div>
-                    </div>
-                    <div class="tooltip">Playa</div>
-                </div>
-
-                <div class="station-marker" id="station-div-6" style="left: 45%; top: 60%;" onclick="openStation('6', 'Restaurante', 5)">
-                    <div class="marker-container">
-                        <div class="gps-pin pin-blue"></div>
-                        <div class="badge" id="badge-6">5</div>
-                    </div>
-                    <div class="tooltip">Restaurante</div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('deleteStationModal', false)">Cancelar</button>
+                    <button class="btn-modal-delete" onclick="confirmDeleteStation()">Eliminar</button>
                 </div>
             </div>
-
-            <div class="train-element" id="train">🚂</div>
-        </div>
-
-        <aside class="control-panel">
-            <h3>Puestos disponibles</h3>
-            <div class="seats-counter" id="seatsCounter">9</div>
-        </aside>
-
-        <footer class="app-footer">
-            <p>Club Puerto Azul 2026 ©</p>
-        </footer>
-    </div>
-
-    <!-- Modal: Estación (Editar puestos en andén) -->
-    <div class="modal-overlay" id="stationModal">
-        <div class="modal-content">
-            <h2 id="modalStationName">Estación</h2>
-            <p>Pasajeros en espera en andén: <span class="highlight" id="modalWaitingCount">0</span></p>
-            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 20px; width: 100%;">
-                <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 10px;">
-                    <button class="btn btn-outline" style="flex: 1;" onclick="alterTempQueue(-1)">-</button>
-                    <button class="btn btn-outline" style="flex: 1;" onclick="alterTempQueue(1)">+</button>
-                </div>
-                <button class="btn btn-blue" onclick="confirmQueueChanges()">Confirmar cambios</button>
-                <button class="btn btn-outline" onclick="toggleModal('stationModal', false)">Regresar</button>
-            </div>
         </div>
     </div>
 
-    <!-- Modal: Modifica disponibilidad del servicio -->
-    <div class="modal-overlay" id="serviceModal">
-        <div class="modal-content">
-            <h2>Modifica disponibilidad<br>del servicio</h2>
-            
-            <span class="modal-label">Desde</span>
-            <input type="text" class="input-grey" id="serviceStartInput" maxlength="5" placeholder="07:00" oninput="validateTimeInput(this)">
-
-            <span class="modal-label">Hasta</span>
-            <input type="text" class="input-grey" id="serviceEndInput" maxlength="5" placeholder="22:00" oninput="validateTimeInput(this)">
-
-            <div id="serviceErrorMsg" style="color: #ff3b30; font-weight: 600; margin-top: 10px; display: none;">Horario inválido</div>
-
-            <div style="margin-top: 20px; width: 100%;">
-                <button class="btn-pill-blue" onclick="confirmServiceHours()">Confirmar cambios</button>
-                <button class="btn-pill-grey" onclick="toggleModal('serviceModal', false)">Salir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Modificar puestos -->
-    <div class="modal-overlay" id="puestosModal">
-        <div class="modal-content">
-            <h2>Modificar puestos</h2>
-            
-            <div class="puestos-display" id="puestosTempCount">9</div>
-
-            <div class="puestos-btn-container">
-                <button class="btn-adjust-blue" onclick="alterTempSeats(1)">+</button>
-                <button class="btn-adjust-red" onclick="alterTempSeats(-1)">-</button>
-            </div>
-
-            <div style="width: 100%;">
-                <button class="btn-pill-blue" onclick="confirmSeatsChanges()">Confirmar cambios</button>
-                <button class="btn-pill-grey" onclick="toggleModal('puestosModal', false)">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Gestionar estaciones -->
-    <div class="modal-overlay" id="manageStationsModal">
-        <div class="modal-content">
-            <h2>Gestionar estaciones</h2>
-            <div style="margin-top: 20px; width: 100%;">
-                <button class="btn-pill-blue" onclick="openCreateStationModal()">Crear estación</button>
-                <button class="btn-pill-blue" onclick="openDeleteStationModal()">Borrar estación</button>
-                <button class="btn-pill-grey" onclick="toggleModal('manageStationsModal', false)">Salir</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Crear estacion -->
-    <div class="modal-overlay" id="createStationModal">
-        <div class="modal-content">
-            <h2>Crear estacion</h2>
-            <span class="modal-label">Nombre de la estación</span>
-            <input type="text" class="input-grey" id="newStationNameInput" placeholder="">
-            
-            <div id="createStationErrorMsg" style="color: #ff3b30; font-weight: 600; margin-top: 10px; display: none;"></div>
-
-            <div style="margin-top: 20px; width: 100%;">
-                <button class="btn-pill-blue" onclick="startCreateStation()">Siguiente</button>
-                <button class="btn-pill-grey" onclick="toggleModal('createStationModal', false)">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Borrar estacion -->
-    <div class="modal-overlay" id="deleteStationModal">
-        <div class="modal-content">
-            <h2>Borrar estacion</h2>
-            
-            <div class="station-list" id="deleteStationList">
-                <!-- Se llena dinamicamente -->
-            </div>
-
-            <div style="margin-top: 20px; width: 100%;">
-                <button class="btn-pill-blue" onclick="confirmDeleteStation()">Borrar</button>
-                <button class="btn-pill-grey" onclick="toggleModal('deleteStationModal', false)">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Estado de la Aplicación en memoria local
-        let currentAvailableSeats = 9;
-        let activeStationId = null;
-        let stationData = {
-            '1': { name: 'Zona naútica', wait: 5 },
-            '2': { name: 'Santa Maria', wait: 5 },
-            '3': { name: 'La niña', wait: 5 },
-            '4': { name: 'La Pinta', wait: 5 },
-            '5': { name: 'Playa', wait: 5 },
-            '6': { name: 'Restaurante', wait: 5 }
-        };
-        let tempStationData = 0; // Para los cambios temporales
-        let nextStationId = 7;
-        let isCreatingStation = false;
-        let stationToDeleteId = null;
-
-        // Simulación del Movimiento del Tren
-        let trainX = 50;
-        const trainElement = document.getElementById('train');
-
-        setInterval(() => {
-            trainX = (trainX + 0.5) % 100;
-            const trainY = 50 + Math.sin(trainX * 0.1) * 20;
-            
-            trainElement.style.left = `${trainX}%`;
-            trainElement.style.top = `${trainY}%`;
-        }, 100);
-
-        function toggleModal(id, show) {
-            document.getElementById(id).style.display = show ? 'flex' : 'none';
-        }
-
-        // ====== GESTION DE SERVICIO (Horarios) ====== //
-        let serviceStartTime = "07:00";
-        let serviceEndTime = "22:00";
-
-        function openServiceModal() {
-            document.getElementById('serviceStartInput').value = serviceStartTime;
-            document.getElementById('serviceEndInput').value = serviceEndTime;
-            document.getElementById('serviceErrorMsg').style.display = "none";
-            toggleModal('serviceModal', true);
-        }
-
-        function validateTimeInput(input) {
-            // Permitir solo números y dos puntos
-            let val = input.value.replace(/[^0-9:]/g, '');
-            
-            // Insertar automáticamente ":" tras escribir los primeros dos dígitos
-            if (val.length === 2 && !val.includes(':') && input.value.length > val.length - 1) {
-                val = val + ':';
-            }
-            
-            // Limitar longitud a 5
-            if (val.length > 5) {
-                val = val.substring(0, 5);
-            }
-            
-            input.value = val;
-        }
-
-        function confirmServiceHours() {
-            const startVal = document.getElementById('serviceStartInput').value.trim();
-            const endVal = document.getElementById('serviceEndInput').value.trim();
-            const errorMsg = document.getElementById('serviceErrorMsg');
-            
-            const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-            if (!timeRegex.test(startVal) || !timeRegex.test(endVal)) {
-                errorMsg.style.display = "block";
-                alert("Horario inválido");
-                return;
-            }
-            
-            const [startH, startM] = startVal.split(':').map(Number);
-            const [endH, endM] = endVal.split(':').map(Number);
-            
-            const startMin = startH * 60 + startM;
-            const endMin = endH * 60 + endM;
-            
-            if (startMin > endMin) {
-                errorMsg.style.display = "block";
-                alert("Horario inválido");
-                return;
-            }
-            
-            errorMsg.style.display = "none";
-            serviceStartTime = startVal;
-            serviceEndTime = endVal;
-            toggleModal('serviceModal', false);
-        }
-
-        // ====== GESTION DE PUESTOS ====== //
-        let tempSeatsCount = 9;
-
-        function openPuestosModal() {
-            tempSeatsCount = currentAvailableSeats;
-            document.getElementById('puestosTempCount').innerText = tempSeatsCount;
-            toggleModal('puestosModal', true);
-        }
-
-        function alterTempSeats(amount) {
-            tempSeatsCount = Math.max(0, tempSeatsCount + amount);
-            document.getElementById('puestosTempCount').innerText = tempSeatsCount;
-        }
-
-        function confirmSeatsChanges() {
-            currentAvailableSeats = tempSeatsCount;
-            document.getElementById('seatsCounter').innerText = currentAvailableSeats;
-            toggleModal('puestosModal', false);
-        }
-
-        // Gestión de Estaciones Interactivas
-        function openStation(id, name, count) {
-            // Evitar abrir modal si estamos en modo creación
-            if(isCreatingStation) return;
-            
-            activeStationId = id;
-            tempStationData = stationData[id].wait;
-            document.getElementById('modalStationName').innerText = name;
-            document.getElementById('modalWaitingCount').innerText = tempStationData;
-            toggleModal('stationModal', true);
-        }
-
-        function alterTempQueue(amount) {
-            if (!activeStationId) return;
-            tempStationData = Math.max(0, tempStationData + amount);
-            document.getElementById('modalWaitingCount').innerText = tempStationData;
-        }
-
-        function confirmQueueChanges() {
-            if (!activeStationId) return;
-            stationData[activeStationId].wait = tempStationData;
-            updateStationUI(activeStationId);
-            toggleModal('stationModal', false);
-        }
-
-        function updateStationUI(id) {
-            const badge = document.getElementById(`badge-${id}`);
-            if (badge) {
-                badge.innerText = stationData[id].wait;
-                badge.style.display = stationData[id].wait > 0 ? 'flex' : 'none';
-            }
-        }
-
-        function toggleSidebar() {
-            const sidebar = document.getElementById('leftSidebar');
-            sidebar.classList.toggle('open');
-        }
-
-        // ====== GESTION DE ESTACIONES (Crear/Borrar) ====== //
-
-        function openCreateStationModal() {
-            toggleModal('manageStationsModal', false);
-            document.getElementById('newStationNameInput').value = '';
-            document.getElementById('createStationErrorMsg').style.display = 'none';
-            toggleModal('createStationModal', true);
-        }
-
-        function startCreateStation() {
-            const name = document.getElementById('newStationNameInput').value.trim();
-            const errorMsgEl = document.getElementById('createStationErrorMsg');
-            
-            if(!name) {
-                errorMsgEl.innerText = "Por favor ingrese un nombre para la estación.";
-                errorMsgEl.style.display = "block";
-                alert("Por favor ingrese un nombre para la estación.");
-                return;
-            }
-            
-            // Validar que no exista otra estación con el mismo nombre
-            const nameExists = Object.values(stationData).some(
-                station => station.name.toLowerCase() === name.toLowerCase()
-            );
-            if (nameExists) {
-                errorMsgEl.innerText = "Ya existe una estación con el mismo nombre";
-                errorMsgEl.style.display = "block";
-                alert("Ya existe una estación con el mismo nombre");
-                return;
-            }
-            
-            errorMsgEl.style.display = "none";
-            toggleModal('createStationModal', false);
-            
-            // Cerramos sidebar si estaba abierta
-            const sidebar = document.getElementById('leftSidebar');
-            if(sidebar.classList.contains('open')) {
-                sidebar.classList.remove('open');
-            }
-            
-            isCreatingStation = true;
-            document.getElementById('mapArea').style.cursor = 'crosshair';
-        }
-
-        function handleMapClick(event) {
-            if(!isCreatingStation) return;
-            
-            const mapArea = document.getElementById('mapArea');
-            const rect = mapArea.getBoundingClientRect();
-            
-            // Calcular porcentajes
-            const x = ((event.clientX - rect.left) / rect.width) * 100;
-            const y = ((event.clientY - rect.top) / rect.height) * 100;
-            
-            const name = document.getElementById('newStationNameInput').value.trim();
-            const newId = String(nextStationId++);
-            
-            stationData[newId] = { name: name, wait: 0 };
-            
-            // Crear elemento DOM
-            const container = document.getElementById('stationsContainer');
-            const newDiv = document.createElement('div');
-            newDiv.className = 'station-marker';
-            newDiv.id = `station-div-${newId}`;
-            newDiv.style.left = `${x}%`;
-            newDiv.style.top = `${y}%`;
-            newDiv.onclick = (e) => {
-                e.stopPropagation(); // Evitar que el mapArea recoja el click si no estamos creando
-                openStation(newId, name, 0);
-            };
-            
-            newDiv.innerHTML = `
-                <div class="marker-container">
-                    <div class="gps-pin pin-blue"></div>
-                    <div class="badge" id="badge-${newId}" style="display:none;">0</div>
-                </div>
-                <div class="tooltip">${name}</div>
-            `;
-            
-            container.appendChild(newDiv);
-            
-            // Restablecer estado
-            isCreatingStation = false;
-            mapArea.style.cursor = 'default';
-        }
-
-        function openDeleteStationModal() {
-            toggleModal('manageStationsModal', false);
-            
-            const listContainer = document.getElementById('deleteStationList');
-            listContainer.innerHTML = ''; // Limpiar lista
-            stationToDeleteId = null;
-            
-            for (const [id, data] of Object.entries(stationData)) {
-                const btn = document.createElement('button');
-                btn.className = 'btn-station-item';
-                btn.innerText = data.name;
-                btn.onclick = () => selectStationToDelete(id, btn);
-                listContainer.appendChild(btn);
-            }
-            
-            toggleModal('deleteStationModal', true);
-        }
-
-        function selectStationToDelete(id, btnElement) {
-            stationToDeleteId = id;
-            // Quitar clase active a todos
-            const buttons = document.getElementById('deleteStationList').querySelectorAll('.btn-station-item');
-            buttons.forEach(b => b.classList.remove('active'));
-            // Agregar active al seleccionado
-            btnElement.classList.add('active');
-        }
-
-        function confirmDeleteStation() {
-            if (!stationToDeleteId) {
-                alert("Seleccione una estación para borrar.");
-                return;
-            }
-            
-            // Eliminar del DOM
-            const div = document.getElementById(`station-div-${stationToDeleteId}`);
-            if (div) div.remove();
-            
-            // Eliminar de los datos
-            delete stationData[stationToDeleteId];
-            
-            toggleModal('deleteStationModal', false);
-        }
-    </script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/services/mapa.js"></script>
 </body>
 </html>
