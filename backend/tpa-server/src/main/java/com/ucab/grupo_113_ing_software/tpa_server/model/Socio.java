@@ -12,7 +12,7 @@ public class Socio extends Usuario {
     private boolean enCola = false;
 
     @Transient
-    private int idEstacionActual;
+    private Long idEstacionActual;
 
 
     public Socio() {
@@ -22,7 +22,7 @@ public class Socio extends Usuario {
     public Socio(Long id, String cedula, String clave) {
         super(id, cedula, clave, Rol.SOCIO);
         enCola = false;
-        idEstacionActual = -1;
+        idEstacionActual = null;
     }
 
     public boolean isEnCola() {
@@ -33,11 +33,11 @@ public class Socio extends Usuario {
         this.enCola = enCola;
     }
 
-    public int getIdEstacionActual() {
+    public Long getIdEstacionActual() {
         return idEstacionActual;
     }
 
-    public void setIdEstacionActual(int idEstacionActual) {
+    public void setIdEstacionActual(Long idEstacionActual) {
         this.idEstacionActual = idEstacionActual;
     }
 }
