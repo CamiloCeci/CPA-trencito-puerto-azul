@@ -20,6 +20,10 @@ public class EstacionService {
         return estacionRepository.save(estacion);
     }
 
+    public Estacion findById(Long id) {
+        return estacionRepository.findById(id).orElse(null);
+    }
+
     public List<Estacion> getAllEstaciones() {
         return estacionRepository.findAll();
     }

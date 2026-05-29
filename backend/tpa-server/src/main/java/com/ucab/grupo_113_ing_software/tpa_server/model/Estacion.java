@@ -20,7 +20,7 @@ public class Estacion {
     @Column(nullable = false)
     private double longitude;
 
-    public Estacion(String nombre, Long id, double latitude, double longitude) {
+    public Estacion(Long id, String nombre, double latitude, double longitude) {
         this.nombre = nombre;
         this.id = id;
         this.contadorPersonasEnCola = 0;

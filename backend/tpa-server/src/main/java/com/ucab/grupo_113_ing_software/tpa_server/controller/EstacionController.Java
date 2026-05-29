@@ -38,7 +38,7 @@ public class EstacionController {
             return ResponseEntity.notFound().build();
         }
 
-        Map<String, Object> response = makeResponse(estacion, "Estacion eliminada exitosamente.");
+        Map<String, Object> response = makeResponse(estacion, "Estación eliminada exitosamente.");
         return ResponseEntity.ok(response);
     }
 

@@ -1,19 +1,15 @@
 package com.ucab.grupo_113_ing_software.tpa_server.model;
 
-import jakarta.persistence.DiscriminatorValue;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Transient;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
 
 @Entity
 @DiscriminatorValue("SOCIO")
 public class Socio extends Usuario {
 
-    @Transient
-    private boolean enCola = false;
-
-    @Transient
-    private Long idEstacionActual;
-
+    @OneToOne(mappedBy = "socio", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private SocioEstacion socioEstacion;
 
     public Socio() {
         super();
@@ -21,23 +17,31 @@ public class Socio extends Usuario {
 
     public Socio(Long id, String cedula, String clave) {
         super(id, cedula, clave, Rol.SOCIO);
-        enCola = false;
-        idEstacionActual = null;
     }
 
+    public SocioEstacion getSocioEstacion() {
+        return socioEstacion;
+    }
+
+    public void setSocioEstacion(SocioEstacion socioEstacion) {
+        this.socioEstacion = socioEstacion;
+    }
+
+    // Convenience methods that delegate to socioEstacion
+
     public boolean isEnCola() {
-        return enCola;
+        return socioEstacion != null && socioEstacion.isEnCola();
     }
 
     public void setEnCola(boolean enCola) {
-        this.enCola = enCola;
+        if (socioEstacion != null) {
+            socioEstacion.setEnCola(enCola);
+        }
     }
 
     public Long getIdEstacionActual() {
-        return idEstacionActual;
-    }
-
-    public void setIdEstacionActual(Long idEstacionActual) {
-        this.idEstacionActual = idEstacionActual;
+        return socioEstacion != null && socioEstacion.getEstacion() != null
+                ? socioEstacion.getEstacion().getId()
+                : null;
     }
 }

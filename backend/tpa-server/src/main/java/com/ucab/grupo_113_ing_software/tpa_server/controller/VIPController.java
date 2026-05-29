@@ -19,6 +19,8 @@ public class VIPController {
         this.vipService = vipService;
     }
 
+    /* Json para meter usuarios: { "cedula": "prueba", "clave": "prueba" }*/
+
     @PostMapping("/")
     public ResponseEntity<VIP> createVIP(@RequestBody VIP vip) {
         return ResponseEntity.status(HttpStatus.CREATED).body(vipService.crearVIP(vip));
