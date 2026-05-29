@@ -1,7 +1,7 @@
 // 1. Definimos las esquinas de la "caja" que encerrará al usuario.
 // Esquina Suroeste (Abajo-Izquierda) y Esquina Noreste (Arriba-Derecha)
-const esquinaSuroeste = L.latLng([10.61607317713829, -66.74583863289024]); // Un poco antes de la costa oeste
-const esquinaNoreste  = L.latLng([10.625367128078, -66.74257389401659]); // Un poco pasado el este del club
+const esquinaSuroeste = L.latLng([10.614291045886088, -66.74899288309359]); // Un poco antes de la costa oeste
+const esquinaNoreste  = L.latLng([10.626853913590706, -66.73838965971663]); // Un poco pasado el este del club
 
 // Enlazamos ambas esquinas en un objeto de límites
 const limitesPermitidos = L.latLngBounds(esquinaSuroeste, esquinaNoreste);
@@ -15,6 +15,14 @@ const map = L.map('map', {
     maxBounds: limitesPermitidos, // Restricción física de movimiento
     maxBoundsViscosity: 1.0,       // 1.0 significa "muro duro" (no deja pasar la pantalla)
     zoomControl: false
+});
+
+map.on('click', function() {
+    const sidebar = document.getElementById('leftSidebar');
+    // Si el sidebar tiene la clase 'open', significa que está desplegado; procedemos a removerla
+    if (sidebar && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+    }
 });
 
 // 2. Añadimos el control de zoom manualmente en el lado derecho (topright)
@@ -34,6 +42,9 @@ let nextStationId = 7;
 let isCreatingStation = false;
 let stationToDeleteId = null;
 let tempStationData = 0;
+// Gestión de Horarios
+let serviceStartTime = "07:00";
+let serviceEndTime = "22:00";
 
 // Diccionario de almacenamiento para las referencias de marcadores físicos de Leaflet
 let leafletMarkers = {};
@@ -131,10 +142,6 @@ function toggleSidebar() {
     document.getElementById('leftSidebar').classList.toggle('open');
 }
 
-// Gestión de Horarios
-let serviceStartTime = "07:00";
-let serviceEndTime = "22:00";
-
 function openServiceModal() {
     document.getElementById('serviceStartInput').value = serviceStartTime;
     document.getElementById('serviceEndInput').value = serviceEndTime;
@@ -175,23 +182,94 @@ function confirmServiceHours() {
     toggleModal('serviceModal', false);
 }
 
-// Gestión de Asientos libres del Tren
+// ====== GESTIÓN DE ASIENTOS LIBRES DEL TREN (ACTUALIZADO CON MODAL DE INTERFAZ) ====== //
 let tempSeatsCount = 9;
+const MAX_TRAIN_SEATS = 20;
+
 function openPuestosModal() {
     tempSeatsCount = currentAvailableSeats;
-    document.getElementById('puestosTempCount').innerText = tempSeatsCount;
+    
+    const inputElement = document.getElementById('puestosTempInput');
+    if (inputElement) {
+        inputElement.value = tempSeatsCount;
+    }
+    
+    checkSeatsChanges();
     toggleModal('puestosModal', true);
 }
 
+function validateSeatsInput(input) {
+    let valStr = input.value.replace(/[^0-9]/g, '');
+    
+    if (valStr === '') {
+        tempSeatsCount = 0;
+        input.value = '';
+    } else {
+        let valNum = parseInt(valStr, 10);
+        if (valNum > MAX_TRAIN_SEATS) {
+            valNum = MAX_TRAIN_SEATS;
+        }
+        tempSeatsCount = valNum;
+        input.value = tempSeatsCount;
+    }
+    checkSeatsChanges();
+}
+
 function alterTempSeats(amount) {
-    tempSeatsCount = Math.max(0, tempSeatsCount + amount);
-    document.getElementById('puestosTempCount').innerText = tempSeatsCount;
+    const inputElement = document.getElementById('puestosTempInput');
+    if (!inputElement) return;
+    
+    let currentVal = parseInt(inputElement.value, 10) || 0;
+    let newVal = currentVal + amount;
+    
+    if (newVal < 0) newVal = 0;
+    if (newVal > MAX_TRAIN_SEATS) newVal = MAX_TRAIN_SEATS;
+    
+    tempSeatsCount = newVal;
+    inputElement.value = tempSeatsCount;
+    
+    checkSeatsChanges();
+}
+
+function checkSeatsChanges() {
+    const btnConfirm = document.getElementById('btnConfirmSeats');
+    if (!btnConfirm) return;
+    
+    // Si el número temporal es igual al que está guardado en el mapa base, se congela el botón
+    if (tempSeatsCount === currentAvailableSeats) {
+        btnConfirm.disabled = true;
+    } else {
+        btnConfirm.disabled = false;
+    }
 }
 
 function confirmSeatsChanges() {
+    const inputElement = document.getElementById('puestosTempInput');
+    if (inputElement && inputElement.value === '') {
+        tempSeatsCount = 0;
+        inputElement.value = 0;
+    }
+
     currentAvailableSeats = tempSeatsCount;
     document.getElementById('seatsCounter').innerText = currentAvailableSeats;
     toggleModal('puestosModal', false);
+}
+
+// 🌟 CAMBIADO: Manejo del botón cancelar abriendo el modal integrado en la interfaz
+function handleCancelSeats() {
+    if (tempSeatsCount !== currentAvailableSeats) {
+        // En lugar de confirm() de JavaScript, abrimos el modal diseñado
+        toggleModal('puestosConfirmExitModal', true);
+    } else {
+        // Si no se tocó nada, cerramos la ventana directamente sin advertencias
+        toggleModal('puestosModal', false);
+    }
+}
+
+// 🌟 NUEVA FUNCIÓN: Ejecutada solo si el usuario decide "Salir" del modal de advertencia
+function forceExitSeats() {
+    toggleModal('puestosConfirmExitModal', false); // Ocultamos la advertencia
+    toggleModal('puestosModal', false);            // Ocultamos la edición de puestos
 }
 
 // Gestión de Colas Internas por Estación
@@ -289,4 +367,16 @@ function confirmDeleteStation() {
     delete stationData[stationToDeleteId];
     
     toggleModal('deleteStationModal', false);
+}
+
+// ====== GESTIÓN DE CONSULTA DE DISPONIBILIDAD (NUEVO) ====== //
+function openStatusModal() {
+    // 1. Capturamos el contenedor del mensaje en el modal
+    const messageElement = document.getElementById('statusModalMessage');
+    
+    // 2. Inyectamos las variables dinámicas de hora de inicio y fin
+    messageElement.innerHTML = `El trencito estará prestando su servicio desde las <strong>${serviceStartTime}</strong> hasta las <strong>${serviceEndTime}</strong>.`;
+    
+    // 3. Abrimos el modal usando la función reutilizable toggleModal
+    toggleModal('statusModal', true);
 }

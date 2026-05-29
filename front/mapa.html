@@ -38,21 +38,49 @@
             </div>
         </div>
 
+        <button class="btn-status-circle" onclick="openStatusModal()" title="Consultar disponibilidad">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </button>
+
+        <div class="modal-overlay" id="statusModal" style="display: none;">
+            <div class="modal-card">
+                <div class="status-icon-container">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0044cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <h3>Disponibilidad del Servicio</h3>
+                <p class="modal-description-status" id="statusModalMessage">
+                    El trencito estará prestando su servicio...
+                </p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-confirm" onclick="toggleModal('statusModal', false)">Volver al mapa</button>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-overlay" id="serviceModal" style="display: none;">
             <div class="modal-card">
-                <h3>Horario de Servicio</h3>
-                <p class="modal-description">Establezca el rango de horas en el que opera el trencito.</p>
+                <h3>Modificar Horario de Servicio</h3>
+                <p class="modal-description">Defina el rango de tiempo en el que opera el trencito:</p>
+                
                 <div class="time-inputs-container">
                     <div class="time-field">
-                        <label>Inicio</label>
-                        <input type="text" id="serviceStartInput" placeholder="00:00" oninput="validateTimeInput(this)">
+                        <label for="serviceStartInput">Inicio</label>
+                        <input type="text" id="serviceStartInput" placeholder="07:00" maxlength="5" oninput="validateTimeInput(this)">
                     </div>
                     <div class="time-field">
-                        <label>Fin</label>
-                        <input type="text" id="serviceEndInput" placeholder="00:00" oninput="validateTimeInput(this)">
+                        <label for="serviceEndInput">Fin</label>
+                        <input type="text" id="serviceEndInput" placeholder="22:00" maxlength="5" oninput="validateTimeInput(this)">
                     </div>
                 </div>
-                <div id="serviceErrorMsg" class="error-text-modal" style="display: none;">Formato u horario inválido</div>
+                
+                <div id="serviceErrorMsg" class="error-text-modal" style="display: none;">El rango de horario es inválido</div>
+                
                 <div class="modal-actions-horizontal">
                     <button class="btn-modal-cancel" onclick="toggleModal('serviceModal', false)">Cancelar</button>
                     <button class="btn-modal-confirm" onclick="confirmServiceHours()">Confirmar</button>
@@ -64,14 +92,34 @@
             <div class="modal-card">
                 <h3>Modificar Puestos</h3>
                 <p class="modal-description">Ajuste la cantidad de asientos libres disponibles actualmente en el tren.</p>
-                <div class="puestos-display" id="puestosTempCount">9</div>
+                
+                <div class="input-container-modal">
+                    <input type="text" id="puestosTempInput" class="puestos-input-edit" oninput="validateSeatsInput(this)" style="text-align: center; font-size: 24px; font-weight: 700; width: 150px; margin: 0 auto 10px auto; border-radius: 24px; padding: 12px; display: block;">
+                </div>
+                
+                <p class="max-capacity-text" style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 20px; text-align: center;">
+                    Cantidad máxima de puestos: 20
+                </p>
+
                 <div class="puestos-btn-container">
                     <button class="btn-adjust-blue" onclick="alterTempSeats(-1)">-</button>
                     <button class="btn-adjust-blue" onclick="alterTempSeats(1)">+</button>
                 </div>
+                
                 <div class="modal-actions-horizontal">
-                    <button class="btn-modal-cancel" onclick="toggleModal('puestosModal', false)">Cancelar</button>
-                    <button class="btn-modal-confirm" onclick="confirmSeatsChanges()">Confirmar</button>
+                    <button class="btn-modal-cancel" onclick="handleCancelSeats()">Cancelar</button>
+                    <button class="btn-modal-confirm" id="btnConfirmSeats" onclick="confirmSeatsChanges()" disabled>Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="puestosConfirmExitModal" style="display: none; z-index: 2000;">
+            <div class="modal-card" style="border: 2px solid #ef4444; max-width: 350px;">
+                <h3 style="color: #ef4444;">¿Salir sin guardar?</h3>
+                <p class="modal-description" style="margin-bottom: 24px;">Hay cambios sin guardar. ¿Estás seguro de que quieres salir sin guardar los cambios?</p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('puestosConfirmExitModal', false)">Volver</button>
+                    <button class="btn-modal-delete" onclick="forceExitSeats()" style="background-color: #ef4444;">Salir</button>
                 </div>
             </div>
         </div>
