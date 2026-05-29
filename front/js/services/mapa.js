@@ -14,7 +14,8 @@ const map = L.map('map', {
     maxZoom: 19,                  // Máximo acercamiento permitido
     maxBounds: limitesPermitidos, // Restricción física de movimiento
     maxBoundsViscosity: 1.0,       // 1.0 significa "muro duro" (no deja pasar la pantalla)
-    zoomControl: false
+    zoomControl: false,
+    attributionControl: false
 });
 
 map.on('click', function() {
@@ -145,7 +146,14 @@ function toggleSidebar() {
 function openServiceModal() {
     document.getElementById('serviceStartInput').value = serviceStartTime;
     document.getElementById('serviceEndInput').value = serviceEndTime;
-    document.getElementById('serviceErrorMsg').style.display = "none";
+    
+    document.getElementById('serviceErrorMsg').style.display = 'none';
+    
+    const sidebar = document.getElementById('leftSidebar');
+    if (sidebar && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+    }
+    
     toggleModal('serviceModal', true);
 }
 
@@ -195,6 +203,12 @@ function openPuestosModal() {
     }
     
     checkSeatsChanges();
+    
+    const sidebar = document.getElementById('leftSidebar');
+    if (sidebar && sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+    }
+    
     toggleModal('puestosModal', true);
 }
 
@@ -379,4 +393,76 @@ function openStatusModal() {
     
     // 3. Abrimos el modal usando la función reutilizable toggleModal
     toggleModal('statusModal', true);
+}
+
+// ====== GESTIÓN DE COLAS INTERNAS POR ESTACIÓN (ACTUALIZADO) ====== //
+function openStation(id, name, count) {
+    if (isCreatingStation) return;
+    activeStationId = id;
+    
+    document.getElementById('modalStationName').innerText = name;
+    updateStationModalDisplay();
+    
+    toggleModal('stationModal', true);
+}
+
+// Actualiza los textos informativos dentro del modal reflejando el estado real
+function updateStationModalDisplay() {
+    if (!activeStationId) return;
+    const currentWait = stationData[activeStationId].wait;
+    document.getElementById('modalWaitingCount').innerText = `${currentWait} ${currentWait === 1 ? 'persona' : 'personas'}`;
+}
+
+// Modifica la cola (Normal o Prioridad) e impacta directo al mapa físico de Leaflet
+function alterStationQueue(amount, isPriority = false) {
+    if (!activeStationId) return;
+    
+    let currentWait = stationData[activeStationId].wait;
+    let newWait = Math.max(0, currentWait + amount);
+    
+    stationData[activeStationId].wait = newWait;
+    
+    // Si entra con prioridad, puedes disparar una notificación estética especial en consola o alert
+    if (isPriority && amount > 0) {
+        console.log(`Pasajero prioritario añadido a la estación: ${stationData[activeStationId].name}`);
+    }
+    
+    // Sincronización inmediata con el badge del mapa
+    const badge = document.getElementById(`badge-${activeStationId}`);
+    if (badge) {
+        badge.innerText = newWait;
+        badge.style.display = newWait > 0 ? 'flex' : 'none';
+    }
+    
+    updateStationModalDisplay();
+}
+
+// Vacía la cola por completo de forma directa
+function resetStationQueue() {
+    if (!activeStationId) return;
+    
+    stationData[activeStationId].wait = 0;
+    
+    const badge = document.getElementById(`badge-${activeStationId}`);
+    if (badge) {
+        badge.innerText = 0;
+        badge.style.display = 'none';
+    }
+    
+    updateStationModalDisplay();
+}
+
+// Calcula el tiempo estimado: Asumimos una métrica lógica de 5 minutos base por cada persona en cola
+function showEstimatedTime() {
+    if (!activeStationId) return;
+    
+    const people = stationData[activeStationId].wait;
+    const minutesPerPerson = 5; // Métrica base configurable de espera por parada
+    const totalEstimatedMinutes = people * minutesPerPerson;
+    
+    if (totalEstimatedMinutes === 0) {
+        alert(`⏱️ Tiempo estimado: No hay demora. La plataforma de la estación "${stationData[activeStationId].name}" está despejada.`);
+    } else {
+        alert(`⏱️ Tiempo estimado para la estación "${stationData[activeStationId].name}": Aproximadamente ${totalEstimatedMinutes} minutos de espera (${people} personas en fila).`);
+    }
 }

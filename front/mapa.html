@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="css/leaflet.css">
     
     <link rel="stylesheet" href="css/stylemapa.css">
 </head>
@@ -125,17 +125,34 @@
         </div>
 
         <div class="modal-overlay" id="stationModal" style="display: none;">
-            <div class="modal-card">
-                <h3 id="modalStationName">Nombre Estación</h3>
-                <p class="modal-description">Personas esperando en la cola actualmente:</p>
-                <div class="puestos-display" id="modalWaitingCount">0</div>
-                <div class="puestos-btn-container">
-                    <button class="btn-adjust-blue" onclick="alterTempQueue(-1)">-</button>
-                    <button class="btn-adjust-blue" onclick="alterTempQueue(1)">+</button>
+            <div class="modal-card" style="max-width: 420px; padding: 24px;">
+                <h3 id="modalStationName" style="margin-bottom: 4px;">Nombre Estación</h3>
+                
+                <div class="station-status-badge" style="background: #f3f4f6; padding: 12px; border-radius: 16px; margin-bottom: 20px;">
+                    <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">En cola actualmente:</span>
+                    <strong id="modalWaitingCount" style="font-size: 22px; color: #0044cc; display: block; margin-top: 4px;">0 personas</strong>
                 </div>
+
+                <div class="station-actions-vertical" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+                    <button class="btn-station-action action-add" onclick="alterStationQueue(1)">
+                        ➕ Añadirse a la cola
+                    </button>
+                    <button class="btn-station-action action-priority" onclick="alterStationQueue(1, true)">
+                        ⭐ Añadirse a la cola con prioridad
+                    </button>
+                    <button class="btn-station-action action-remove" onclick="alterStationQueue(-1)">
+                        ➖ Eliminarse de la cola
+                    </button>
+                    <button class="btn-station-action action-reset" onclick="resetStationQueue()">
+                        🔄 Reiniciar la cola
+                    </button>
+                    <button class="btn-station-action action-time" onclick="showEstimatedTime()">
+                        ⏱️ Ver tiempo estimado de llegada
+                    </button>
+                </div>
+                
                 <div class="modal-actions-horizontal">
-                    <button class="btn-modal-cancel" onclick="toggleModal('stationModal', false)">Cancelar</button>
-                    <button class="btn-modal-confirm" onclick="confirmQueueChanges()">Guardar</button>
+                    <button class="btn-modal-cancel" style="border-radius: 24px; padding: 14px; width: 100%;" onclick="toggleModal('stationModal', false)">Salir</button>
                 </div>
             </div>
         </div>
