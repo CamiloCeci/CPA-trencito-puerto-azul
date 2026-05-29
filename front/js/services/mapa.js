@@ -1,5 +1,6 @@
-// 1. Definimos las esquinas de la "caja" que encerrará al usuario.
-// Esquina Suroeste (Abajo-Izquierda) y Esquina Noreste (Arriba-Derecha)
+// ==========================================================================
+// 1. CONFIGURACIÓN E INICIALIZACIÓN COMÚN (Para los 4 mapas)
+// ==========================================================================
 const esquinaSuroeste = L.latLng([10.614291045886088, -66.74899288309359]); // Un poco antes de la costa oeste
 const esquinaNoreste  = L.latLng([10.626853913590706, -66.73838965971663]); // Un poco pasado el este del club
 
@@ -28,7 +29,7 @@ map.on('click', function() {
 
 // 2. Añadimos el control de zoom manualmente en el lado derecho (topright)
 L.control.zoom({
-    position: 'topright' // 👈 Mueve los botones [+] y [-] a la derecha
+    position: 'topright' // Mueve los botones [+] y [-] a la derecha
 }).addTo(map);
 
 // 3. Agregar la capa base de mapa (OpenStreetMap) como ya lo tenías
@@ -46,6 +47,8 @@ let tempStationData = 0;
 // Gestión de Horarios
 let serviceStartTime = "07:00";
 let serviceEndTime = "22:00";
+// para validar los mensajes de cola
+let usuarioEnColaVirtual = false;
 
 // Diccionario de almacenamiento para las referencias de marcadores físicos de Leaflet
 let leafletMarkers = {};
@@ -62,18 +65,27 @@ let stationData = {
 };
 
 // 3. Función para renderizar un Pin interactivo usando los estilos nativos de tu CSS
+// Variable de control para saber si la interfaz tiene la barra lateral (Admin y Operador)
+const tieneSidebar = document.getElementById('leftSidebar') !== null;
+
 function createStationMarker(id, data) {
     const customDiv = document.createElement('div');
     customDiv.className = 'station-marker-leaflet'; 
+    
+    // REGLA DE NEGOCIO: La burbuja solo se muestra si tieneSidebar es verdadero (Admin/Operador) y hay gente en cola
+    const mostrarNumeroCola = tieneSidebar && data.wait > 0;
+
     customDiv.innerHTML = `
         <div class="marker-container">
             <div class="gps-pin pin-blue"></div>
-            <div class="badge" id="badge-${id}" style="display: ${data.wait > 0 ? 'flex' : 'none'};">${data.wait}</div>
+            <div class="badge" id="badge-${id}" style="display: ${mostrarNumeroCola ? 'flex' : 'none'};">
+                ${data.wait}
+            </div>
             <div class="tooltip">${data.name}</div>
         </div>
     `;
 
-    // Disparador del Modal al hacer click en el marcador
+    // Disparador del Modal al hacer click en el marcador (Mantiene intacta tu lógica original)
     customDiv.onclick = (e) => {
         e.stopPropagation();
         if (isCreatingStation) return;
@@ -269,7 +281,7 @@ function confirmSeatsChanges() {
     toggleModal('puestosModal', false);
 }
 
-// 🌟 CAMBIADO: Manejo del botón cancelar abriendo el modal integrado en la interfaz
+// Manejo del botón cancelar abriendo el modal integrado en la interfaz
 function handleCancelSeats() {
     if (tempSeatsCount !== currentAvailableSeats) {
         // En lugar de confirm() de JavaScript, abrimos el modal diseñado
@@ -280,7 +292,7 @@ function handleCancelSeats() {
     }
 }
 
-// 🌟 NUEVA FUNCIÓN: Ejecutada solo si el usuario decide "Salir" del modal de advertencia
+// Ejecutada solo si el usuario decide "Salir" del modal de advertencia
 function forceExitSeats() {
     toggleModal('puestosConfirmExitModal', false); // Ocultamos la advertencia
     toggleModal('puestosModal', false);            // Ocultamos la edición de puestos
@@ -292,7 +304,10 @@ function openStation(id, name, count) {
     activeStationId = id;
     tempStationData = stationData[id].wait;
     document.getElementById('modalStationName').innerText = name;
-    document.getElementById('modalWaitingCount').innerText = tempStationData;
+    const elementoContador = document.getElementById('modalWaitingCount');
+    if (elementoContador) {
+        elementoContador.innerText = tempStationData;
+    }
     toggleModal('stationModal', true);
 }
 
@@ -410,31 +425,88 @@ function openStation(id, name, count) {
 function updateStationModalDisplay() {
     if (!activeStationId) return;
     const currentWait = stationData[activeStationId].wait;
-    document.getElementById('modalWaitingCount').innerText = `${currentWait} ${currentWait === 1 ? 'persona' : 'personas'}`;
+    
+    // Capturamos el elemento de forma segura
+    const waitingCountEl = document.getElementById('modalWaitingCount');
+    
+    // Muro protector: Solo inyectamos el texto si el elemento existe en el HTML actual
+    if (waitingCountEl) {
+        waitingCountEl.innerText = `${currentWait} ${currentWait === 1 ? 'persona' : 'personas'}`;
+    }
 }
 
 // Modifica la cola (Normal o Prioridad) e impacta directo al mapa físico de Leaflet
 function alterStationQueue(amount, isPriority = false) {
     if (!activeStationId) return;
     
+    // 1. Obtener y calcular el nuevo estado de la cola
     let currentWait = stationData[activeStationId].wait;
     let newWait = Math.max(0, currentWait + amount);
     
     stationData[activeStationId].wait = newWait;
     
-    // Si entra con prioridad, puedes disparar una notificación estética especial en consola o alert
+    // 2. Controlar la notificación estética especial de prioridad
     if (isPriority && amount > 0) {
         console.log(`Pasajero prioritario añadido a la estación: ${stationData[activeStationId].name}`);
     }
     
-    // Sincronización inmediata con el badge del mapa
+    // 3. Sincronización inmediata con el badge del mapa aplicando el filtro de rol
     const badge = document.getElementById(`badge-${activeStationId}`);
     if (badge) {
         badge.innerText = newWait;
-        badge.style.display = newWait > 0 ? 'flex' : 'none';
+        // REGLA: Solo se muestra si el usuario tiene barra lateral (Admin/Operador) y hay gente en cola
+        badge.style.display = (tieneSidebar && newWait > 0) ? 'flex' : 'none';
     }
     
+    // 4. Actualizar los textos informativos del modal abierto
     updateStationModalDisplay();
+}
+
+// Nueva funcion para poder validar lo de las colas virtuales
+function unirseAColaVirtual() {
+    if (!activeStationId) return;
+
+    // 1. CONDICIONAL: Verifica presencia en cola virtual (Diagrama: ¿Está en la cola?)
+    if (usuarioEnColaVirtual) {
+        // Flujo SI: Muestra el mensaje de advertencia
+        abrirMensajeCola("Ya estás en la cola, espera unos momentos a que el tren pase por ti");
+        return;
+    }
+
+    // Flujo NO: No está en la cola -> Procede a agregarlo
+    // 2. Añade uno al contador de personas en la cola virtual de la estación activa
+    stationData[activeStationId].wait += 1;
+    usuarioEnColaVirtual = true; // Cambia el estado del usuario de forma global
+
+    // 3. Sincroniza de inmediato el badge visual en el mapa de Leaflet
+    const badge = document.getElementById(`badge-${activeStationId}`);
+    if (badge) {
+        badge.innerText = stationData[activeStationId].wait;
+        badge.style.display = (tieneSidebar && stationData[activeStationId].wait > 0) ? 'flex' : 'none';
+    }
+
+    // 4. Actualiza los textos del modal de la estación por detrás si es necesario
+    updateStationModalDisplay();
+
+    // 5. Muestra el mensaje de éxito estructurado en el diagrama
+    abrirMensajeCola("Agregado a la cola, el trencito pasará por ti en un momento");
+}
+
+// Funciones de soporte para controlar el nuevo Modal de Mensajes/Alertas
+function abrirMensajeCola(mensaje) {
+    // Cerramos el modal de la estación actual para limpiar la vista
+    toggleModal('stationModal', false);
+    
+    // Inyectamos el texto dinámico en el nuevo modal de respuestas
+    document.getElementById('mensajeColaTexto').innerText = mensaje;
+    
+    // Desplegamos el modal de respuesta
+    toggleModal('mensajeColaModal', true);
+}
+
+function presionarOKCola() {
+    // Cierra el modal de respuesta (Diagrama: Presiona OK -> Regresa a la vista del mapa)
+    toggleModal('mensajeColaModal', false);
 }
 
 // Vacía la cola por completo de forma directa
