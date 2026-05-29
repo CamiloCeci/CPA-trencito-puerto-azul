@@ -1,5 +1,6 @@
-// 1. Definimos las esquinas de la "caja" que encerrará al usuario.
-// Esquina Suroeste (Abajo-Izquierda) y Esquina Noreste (Arriba-Derecha)
+// ==========================================================================
+// 1. CONFIGURACIÓN E INICIALIZACIÓN COMÚN (Para los 4 mapas)
+// ==========================================================================
 const esquinaSuroeste = L.latLng([10.614291045886088, -66.74899288309359]); // Un poco antes de la costa oeste
 const esquinaNoreste  = L.latLng([10.626853913590706, -66.73838965971663]); // Un poco pasado el este del club
 
@@ -28,7 +29,7 @@ map.on('click', function() {
 
 // 2. Añadimos el control de zoom manualmente en el lado derecho (topright)
 L.control.zoom({
-    position: 'topright' // 👈 Mueve los botones [+] y [-] a la derecha
+    position: 'topright' // Mueve los botones [+] y [-] a la derecha
 }).addTo(map);
 
 // 3. Agregar la capa base de mapa (OpenStreetMap) como ya lo tenías
@@ -46,34 +47,45 @@ let tempStationData = 0;
 // Gestión de Horarios
 let serviceStartTime = "07:00";
 let serviceEndTime = "22:00";
+// para validar los mensajes de cola
+let estadoColaUsuario = null;
 
 // Diccionario de almacenamiento para las referencias de marcadores físicos de Leaflet
 let leafletMarkers = {};
 
 // Base de Datos en Memoria con coordenadas geográficas reales del club
 let stationData = {
-    '1': { name: 'Zona naútica', wait: 5, coords: [10.622595758743602, -66.7461572479436] },
-    '2': { name: 'Santa Maria',  wait: 5, coords: [10.618486077231152, -66.74385736567685] },
-    '3': { name: 'La niña',      wait: 5, coords: [10.618837206141515, -66.74515238462081] },
-    '4': { name: 'La Pinta',     wait: 5, coords: [10.618674182054734, -66.74445065021767] },
-    '5': { name: 'Playa',        wait: 5, coords: [10.622046128162003, -66.74377994390169] },
-    '6': { name: 'Canchas',  wait: 5, coords: [10.61782810491524, -66.74015360220449] },
-    '7': { name: 'Recepción',  wait: 5, coords: [10.61957317266227, -66.74293121616634] }
+    '1': { name: 'Zona naútica', wait: 5, coords: [10.62267341141378, -66.7461568582826] },
+    '2': { name: 'Santa Maria',  wait: 5, coords: [10.618411034818578, -66.74366701948608] },
+    '3': { name: 'La niña',      wait: 5, coords: [10.6188056787502, -66.74505364628651] },
+    '4': { name: 'La Pinta',     wait: 5, coords: [10.618622100943933, -66.74448152746639] },
+    '5': { name: 'Playa',        wait: 5, coords: [10.622011443491711, -66.74376989883172] },
+    '6': { name: 'Canchas',  wait: 5, coords: [10.618194832327799, -66.74028161600408] },
+    '7': { name: 'Recepción',  wait: 5, coords: [10.619498603810012, -66.7429570041427] }
 };
 
 // 3. Función para renderizar un Pin interactivo usando los estilos nativos de tu CSS
+// Variable de control para saber si la interfaz tiene la barra lateral (Admin y Operador)
+const tieneSidebar = document.getElementById('leftSidebar') !== null;
+
 function createStationMarker(id, data) {
     const customDiv = document.createElement('div');
     customDiv.className = 'station-marker-leaflet'; 
+    
+    // REGLA DE NEGOCIO: La burbuja solo se muestra si tieneSidebar es verdadero (Admin/Operador) y hay gente en cola
+    const mostrarNumeroCola = tieneSidebar && data.wait > 0;
+
     customDiv.innerHTML = `
         <div class="marker-container">
             <div class="gps-pin pin-blue"></div>
-            <div class="badge" id="badge-${id}" style="display: ${data.wait > 0 ? 'flex' : 'none'};">${data.wait}</div>
+            <div class="badge" id="badge-${id}" style="display: ${mostrarNumeroCola ? 'flex' : 'none'};">
+                ${data.wait}
+            </div>
             <div class="tooltip">${data.name}</div>
         </div>
     `;
 
-    // Disparador del Modal al hacer click en el marcador
+    // Disparador del Modal al hacer click en el marcador (Mantiene intacta tu lógica original)
     customDiv.onclick = (e) => {
         e.stopPropagation();
         if (isCreatingStation) return;
@@ -269,7 +281,7 @@ function confirmSeatsChanges() {
     toggleModal('puestosModal', false);
 }
 
-// 🌟 CAMBIADO: Manejo del botón cancelar abriendo el modal integrado en la interfaz
+// Manejo del botón cancelar abriendo el modal integrado en la interfaz
 function handleCancelSeats() {
     if (tempSeatsCount !== currentAvailableSeats) {
         // En lugar de confirm() de JavaScript, abrimos el modal diseñado
@@ -280,7 +292,7 @@ function handleCancelSeats() {
     }
 }
 
-// 🌟 NUEVA FUNCIÓN: Ejecutada solo si el usuario decide "Salir" del modal de advertencia
+// Ejecutada solo si el usuario decide "Salir" del modal de advertencia
 function forceExitSeats() {
     toggleModal('puestosConfirmExitModal', false); // Ocultamos la advertencia
     toggleModal('puestosModal', false);            // Ocultamos la edición de puestos
@@ -292,7 +304,10 @@ function openStation(id, name, count) {
     activeStationId = id;
     tempStationData = stationData[id].wait;
     document.getElementById('modalStationName').innerText = name;
-    document.getElementById('modalWaitingCount').innerText = tempStationData;
+    const elementoContador = document.getElementById('modalWaitingCount');
+    if (elementoContador) {
+        elementoContador.innerText = tempStationData;
+    }
     toggleModal('stationModal', true);
 }
 
@@ -410,31 +425,134 @@ function openStation(id, name, count) {
 function updateStationModalDisplay() {
     if (!activeStationId) return;
     const currentWait = stationData[activeStationId].wait;
-    document.getElementById('modalWaitingCount').innerText = `${currentWait} ${currentWait === 1 ? 'persona' : 'personas'}`;
+    
+    // Capturamos el elemento de forma segura
+    const waitingCountEl = document.getElementById('modalWaitingCount');
+    
+    // Muro protector: Solo inyectamos el texto si el elemento existe en el HTML actual
+    if (waitingCountEl) {
+        waitingCountEl.innerText = `${currentWait} ${currentWait === 1 ? 'persona' : 'personas'}`;
+    }
 }
 
 // Modifica la cola (Normal o Prioridad) e impacta directo al mapa físico de Leaflet
 function alterStationQueue(amount, isPriority = false) {
     if (!activeStationId) return;
     
+    // 1. Obtener y calcular el nuevo estado de la cola
     let currentWait = stationData[activeStationId].wait;
     let newWait = Math.max(0, currentWait + amount);
     
     stationData[activeStationId].wait = newWait;
     
-    // Si entra con prioridad, puedes disparar una notificación estética especial en consola o alert
+    // 2. Controlar la notificación estética especial de prioridad
     if (isPriority && amount > 0) {
         console.log(`Pasajero prioritario añadido a la estación: ${stationData[activeStationId].name}`);
     }
     
-    // Sincronización inmediata con el badge del mapa
+    // 3. Sincronización inmediata con el badge del mapa aplicando el filtro de rol
     const badge = document.getElementById(`badge-${activeStationId}`);
     if (badge) {
         badge.innerText = newWait;
-        badge.style.display = newWait > 0 ? 'flex' : 'none';
+        // REGLA: Solo se muestra si el usuario tiene barra lateral (Admin/Operador) y hay gente en cola
+        badge.style.display = (tieneSidebar && newWait > 0) ? 'flex' : 'none';
     }
     
+    // 4. Actualizar los textos informativos del modal abierto
     updateStationModalDisplay();
+}
+
+// 1. Añadirse a la cola NORMAL
+function unirseAColaVirtual() {
+    if (!activeStationId) return;
+
+    // CONDICIONAL: Verifica si ya está en alguna cola
+    if (estadoColaUsuario !== null) {
+        abrirMensajeCola("Ya estás en la cola, espera unos momentos a que el tren pase por ti");
+        return;
+    }
+
+    // Procesa flujo de agregar
+    stationData[activeStationId].wait += 1;
+    estadoColaUsuario = 'normal'; // Cambia el estado
+
+    sincronizarBadgeMapa(activeStationId);
+    updateStationModalDisplay();
+
+    abrirMensajeCola("Agregado a la cola, el trencito pasará por ti en un momento");
+}
+
+// 2. NUEVO: Añadirse a la cola con PRIORIDAD (VIP)
+function unirseAColaPrioridad() {
+    if (!activeStationId) return;
+
+    // CONDICIONAL: Verifica si ya está en alguna cola (normal o prioridad)
+    if (estadoColaUsuario !== null) {
+        abrirMensajeCola("Ya estás en la cola, espera unos momentos a que el tren pase por ti");
+        return;
+    }
+
+    // Procesa flujo de agregar (usa la lógica de tu función alterStationQueue para auditoría interna si quieres)
+    stationData[activeStationId].wait += 1;
+    estadoColaUsuario = 'prioridad'; // Registra que entró como prioridad
+
+    // Log estético o auditoría que ya tenías pensado
+    console.log(`Pasajero prioritario añadido a la estación: ${stationData[activeStationId].name}`);
+
+    sincronizarBadgeMapa(activeStationId);
+    updateStationModalDisplay();
+
+    // Mensaje adaptado al diagrama pero con el toque VIP
+    abrirMensajeCola("Agregado a la cola con prioridad, el trencito pasará por ti en un momento");
+}
+
+// 3. Eliminarse de la cola (Soporta ambos tipos)
+function eliminarseDeColaVirtual() {
+    if (!activeStationId) return;
+
+    // CONDICIONAL: Si es null, no está en ninguna fila
+    if (estadoColaUsuario === null) {
+        abrirMensajeCola("No te encuentras registrado en la cola virtual de ninguna estación.");
+        return;
+    }
+
+    // Resta el pasajero de la estación activa
+    let currentWait = stationData[activeStationId].wait;
+    stationData[activeStationId].wait = Math.max(0, currentWait - 1);
+    
+    // Resetea el estado global a libre
+    estadoColaUsuario = null; 
+
+    sincronizarBadgeMapa(activeStationId);
+    updateStationModalDisplay();
+
+    abrirMensajeCola("Te has eliminado de la cola exitosamente. Ya no estás en la fila virtual.");
+}
+
+// Función auxiliar para no repetir código de actualización del mapa
+function sincronizarBadgeMapa(id) {
+    const badge = document.getElementById(`badge-${id}`);
+    if (badge) {
+        badge.innerText = stationData[id].wait;
+        badge.style.display = (tieneSidebar && stationData[id].wait > 0) ? 'flex' : 'none';
+    }
+}
+
+// Funciones de soporte para controlar el nuevo Modal de Mensajes/Alertas
+function abrirMensajeCola(mensaje) {
+    // Cerramos el modal de la estación actual para limpiar la vista
+    toggleModal('stationModal', false);
+    
+    // Inyectamos el texto dinámico en el nuevo modal de respuestas
+    document.getElementById('mensajeColaTexto').innerText = mensaje;
+    
+    // Desplegamos el modal de respuesta
+    toggleModal('mensajeColaModal', true);
+}
+
+function presionarOKCola() {
+    // Cierra el modal de respuesta (Diagrama: Presiona OK -> Regresa a la vista del mapa)
+    toggleModal('mensajeColaModal', false);
 }
 
 // Vacía la cola por completo de forma directa
@@ -466,3 +584,49 @@ function showEstimatedTime() {
         alert(`⏱️ Tiempo estimado para la estación "${stationData[activeStationId].name}": Aproximadamente ${totalEstimatedMinutes} minutos de espera (${people} personas en fila).`);
     }
 }
+
+// ==========================================================================
+// VALIDACIÓN DE HORARIO DE SERVICIO Y REDIRECCIÓN (Cierre de Servicio)
+// ==========================================================================
+
+// Función para convertir un string "HH:MM" a minutos totales desde la medianoche
+function tiempoEnMinutos(horaString) {
+    const [horas, minutos] = horaString.split(':').map(Number);
+    return (horas * 60) + minutos;
+}
+
+// Función principal que valida si el servicio está activo en el momento actual
+function verificarHorarioServicio() {
+    const ahora = new Date();
+    // Formateamos la hora actual en formato HH:MM (usando formato de 24 horas)
+    const horaActualStr = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+    
+    const minutosActual = tiempoEnMinutos(horaActualStr);
+    const minutosInicio = tiempoEnMinutos(serviceStartTime);
+    const minutosFin = tiempoEnMinutos(serviceEndTime);
+
+    // CONDICIONAL: Si la hora actual está fuera del rango permitido
+    if (minutosActual < minutosInicio || minutosActual > minutosFin) {
+        // Inyectamos el texto de advertencia dinámico con el horario del club
+        const mensajeTexto = `El servicio de trencito se encuentra cerrado en este momento. El horario de atención es de ${serviceStartTime} a ${serviceEndTime}.`;
+        document.getElementById('mensajeCierreTexto').innerText = mensajeTexto;
+        
+        // Desplegamos el modal de bloqueo del servicio
+        toggleModal('cierreServicioModal', true);
+        return false;
+    }
+    return true;
+}
+
+// Función que ejecuta el botón "Confirmar" del modal para sacar al usuario
+function redirigirAInicioSesion() {
+    window.location.href = 'inicsesion.html';
+}
+
+// EJECUCIÓN AUTOMÁTICA: Valida el horario inmediatamente al cargar la pantalla
+window.addEventListener('DOMContentLoaded', () => {
+    verificarHorarioServicio();
+    
+    // Opcional: Si quieres re-verificar el horario cada 1 minuto de forma reactiva
+    setInterval(verificarHorarioServicio, 60000);
+});
