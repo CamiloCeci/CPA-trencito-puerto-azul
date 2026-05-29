@@ -55,13 +55,13 @@ let leafletMarkers = {};
 
 // Base de Datos en Memoria con coordenadas geográficas reales del club
 let stationData = {
-    '1': { name: 'Zona naútica', wait: 5, coords: [10.62267341141378, -66.7461568582826] },
-    '2': { name: 'Santa Maria',  wait: 5, coords: [10.618411034818578, -66.74366701948608] },
-    '3': { name: 'La niña',      wait: 5, coords: [10.6188056787502, -66.74505364628651] },
-    '4': { name: 'La Pinta',     wait: 5, coords: [10.618622100943933, -66.74448152746639] },
-    '5': { name: 'Playa',        wait: 5, coords: [10.622011443491711, -66.74376989883172] },
-    '6': { name: 'Canchas',  wait: 5, coords: [10.618194832327799, -66.74028161600408] },
-    '7': { name: 'Recepción',  wait: 5, coords: [10.619498603810012, -66.7429570041427] }
+    '1': { name: 'Zona naútica', wait: 5, status: "active", isVIPActive: false, coords: [10.62267341141378, -66.7461568582826] },
+    '2': { name: 'Santa Maria',  wait: 5, status: "active", isVIPActive: false, coords: [10.618411034818578, -66.74366701948608] },
+    '3': { name: 'La niña',      wait: 5, status: "active", isVIPActive: false, coords: [10.6188056787502, -66.74505364628651] },
+    '4': { name: 'La Pinta',     wait: 5, status: "active", isVIPActive: false, coords: [10.618622100943933, -66.74448152746639] },
+    '5': { name: 'Playa',        wait: 5, status: "active", isVIPActive: false, coords: [10.622011443491711, -66.74376989883172] },
+    '6': { name: 'Canchas',  wait: 5, status: "active", isVIPActive: false, coords: [10.618194832327799, -66.74028161600408] },
+    '7': { name: 'Recepción',  wait: 5, status: "active", isVIPActive: false, coords: [10.619498603810012, -66.7429570041427] }
 };
 
 // 3. Función para renderizar un Pin interactivo usando los estilos nativos de tu CSS
@@ -482,27 +482,21 @@ function unirseAColaVirtual() {
     abrirMensajeCola("Agregado a la cola, el trencito pasará por ti en un momento");
 }
 
-// 2. NUEVO: Añadirse a la cola con PRIORIDAD (VIP)
 function unirseAColaPrioridad() {
     if (!activeStationId) return;
 
-    // CONDICIONAL: Verifica si ya está en alguna cola (normal o prioridad)
     if (estadoColaUsuario !== null) {
         abrirMensajeCola("Ya estás en la cola, espera unos momentos a que el tren pase por ti");
         return;
     }
 
-    // Procesa flujo de agregar (usa la lógica de tu función alterStationQueue para auditoría interna si quieres)
     stationData[activeStationId].wait += 1;
-    estadoColaUsuario = 'prioridad'; // Registra que entró como prioridad
-
-    // Log estético o auditoría que ya tenías pensado
-    console.log(`Pasajero prioritario añadido a la estación: ${stationData[activeStationId].name}`);
+    stationData[activeStationId].isVIPActive = true; // 🔥 Activa el estado visual VIP en la estación
+    estadoColaUsuario = 'prioridad'; 
 
     sincronizarBadgeMapa(activeStationId);
     updateStationModalDisplay();
 
-    // Mensaje adaptado al diagrama pero con el toque VIP
     abrirMensajeCola("Agregado a la cola con prioridad, el trencito pasará por ti en un momento");
 }
 
@@ -510,17 +504,22 @@ function unirseAColaPrioridad() {
 function eliminarseDeColaVirtual() {
     if (!activeStationId) return;
 
-    // CONDICIONAL: Si es null, no está en ninguna fila
     if (estadoColaUsuario === null) {
         abrirMensajeCola("No te encuentras registrado en la cola virtual de ninguna estación.");
         return;
     }
 
-    // Resta el pasajero de la estación activa
     let currentWait = stationData[activeStationId].wait;
     stationData[activeStationId].wait = Math.max(0, currentWait - 1);
     
-    // Resetea el estado global a libre
+    // Si la cola baja a 0, por seguridad apagamos el estado VIP de la estación
+    if (stationData[activeStationId].wait === 0) {
+        stationData[activeStationId].isVIPActive = false;
+    } else if (estadoColaUsuario === 'prioridad') {
+        // Si el usuario que se está saliendo es el que metió prioridad, la apagamos
+        stationData[activeStationId].isVIPActive = false;
+    }
+    
     estadoColaUsuario = null; 
 
     sincronizarBadgeMapa(activeStationId);
@@ -531,10 +530,27 @@ function eliminarseDeColaVirtual() {
 
 // Función auxiliar para no repetir código de actualización del mapa
 function sincronizarBadgeMapa(id) {
+    // Sincroniza número en el badge redondo
     const badge = document.getElementById(`badge-${id}`);
     if (badge) {
         badge.innerText = stationData[id].wait;
         badge.style.display = (tieneSidebar && stationData[id].wait > 0) ? 'flex' : 'none';
+    }
+
+    // 🔥 BUSCA EL CONTENEDOR DEL PIN DE LEAFLET E INYECTA LA ANIMACIÓN
+    // Buscamos el elemento HTML del marcador a través del ID generado dinámicamente en tu bucle de inicialización
+    const markerElement = document.querySelector(`.station-node[data-id="${id}"] .marker-container, #marker-container-${id}`); 
+    
+    // Si no tiene id directo, podemos buscarlo por el envoltorio interno de tu marcador personalizado:
+    const fallbackElement = badge ? badge.closest('.marker-container') : null;
+    const targetContainer = markerElement || fallbackElement;
+
+    if (targetContainer) {
+        if (stationData[id].isVIPActive) {
+            targetContainer.classList.add('vip-active'); // Enciende el pulso dorado
+        } else {
+            targetContainer.classList.remove('vip-active'); // Apaga el pulso dorado
+        }
     }
 }
 
@@ -559,14 +575,17 @@ function presionarOKCola() {
 function resetStationQueue() {
     if (!activeStationId) return;
     
+    // 1. Reseteamos los datos de la estación a cero y apagamos el estado VIP
     stationData[activeStationId].wait = 0;
+    stationData[activeStationId].isVIPActive = false; // 🔥 Apaga el flag visual VIP
     
-    const badge = document.getElementById(`badge-${activeStationId}`);
-    if (badge) {
-        badge.innerText = 0;
-        badge.style.display = 'none';
-    }
+    // 2. Si el usuario que reseteó la cola estaba en ella, limpiamos su estado local
+    estadoColaUsuario = null; 
     
+    // 3. Sincronizamos el badge numérico y removemos la clase de animación del marcador
+    sincronizarBadgeMapa(activeStationId);
+    
+    // 4. Refrescamos los textos informativos del modal abierto
     updateStationModalDisplay();
 }
 
