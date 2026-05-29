@@ -9,9 +9,11 @@ public class VIP extends Socio {
 
     public VIP() {
         super();
+        super.setRol(Rol.VIP);
     }
 
     public VIP(Long id, String cedula, String clave) {
         super(id, cedula, clave);
+        super.setRol(Rol.VIP);
     }
 }
