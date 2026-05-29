@@ -24,19 +24,35 @@ public class SocioEstacionService {
 
     /**
      * Assigns a socio (or VIP) to a station. If the socio already has a record,
-     * it updates the existing one; otherwise, it creates a new one.
+     * it updates the station; otherwise, it creates a new record.
+     * Pass estacion = null to mark the socio as not waiting at any station.
      */
     @Transactional
-    public SocioEstacion asignarEstacion(Socio socio, Estacion estacion, boolean enCola) {
+    public SocioEstacion asignarEstacion(Socio socio, Estacion estacion) {
         Optional<SocioEstacion> existing = socioEstacionRepository.findBySocioId(socio.getId());
         if (existing.isPresent()) {
             SocioEstacion se = existing.get();
             se.setEstacion(estacion);
-            se.setEnCola(enCola);
             return socioEstacionRepository.save(se);
         }
-        SocioEstacion nuevo = new SocioEstacion(socio, estacion, enCola);
+
+        SocioEstacion nuevo = new SocioEstacion(socio, estacion);
         return socioEstacionRepository.save(nuevo);
+    }
+
+    /**
+     * Clears the station assignment for a socio (sets estacion to null).
+     * The socio is no longer waiting at any station.
+     */
+    @Transactional
+    public SocioEstacion desasignarEstacion(Long socioId) {
+        Optional<SocioEstacion> existing = socioEstacionRepository.findBySocioId(socioId);
+        if (existing.isPresent()) {
+            SocioEstacion se = existing.get();
+            se.setEstacion(null);
+            return socioEstacionRepository.save(se);
+        }
+        return null;
     }
 
     /**
@@ -54,14 +70,14 @@ public class SocioEstacionService {
     }
 
     /**
-     * Returns all socios/VIPs that are in the queue at a given station.
+     * Returns all socios/VIPs that are currently waiting at any station.
      */
-    public List<SocioEstacion> findEnColaByEstacionId(Long estacionId) {
-        return socioEstacionRepository.findByEstacionIdAndEnColaTrue(estacionId);
+    public List<SocioEstacion> findAllEsperando() {
+        return socioEstacionRepository.findByEstacionIsNotNull();
     }
 
     /**
-     * Removes the station assignment for a given socio/VIP.
+     * Removes the record for a given socio/VIP entirely.
      */
     @Transactional
     public void eliminarAsignacion(Long socioId) {

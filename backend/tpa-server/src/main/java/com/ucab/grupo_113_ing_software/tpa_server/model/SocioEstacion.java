@@ -15,19 +15,15 @@ public class SocioEstacion {
     private Socio socio;
 
     @ManyToOne
-    @JoinColumn(name = "estacion_id", nullable = false)
+    @JoinColumn(name = "estacion_id")
     private Estacion estacion;
-
-    @Column(nullable = false)
-    private boolean enCola = false;
 
     public SocioEstacion() {
     }
 
-    public SocioEstacion(Socio socio, Estacion estacion, boolean enCola) {
+    public SocioEstacion(Socio socio, Estacion estacion) {
         this.socio = socio;
         this.estacion = estacion;
-        this.enCola = enCola;
     }
 
     public Long getId() {
@@ -54,11 +50,10 @@ public class SocioEstacion {
         this.estacion = estacion;
     }
 
-    public boolean isEnCola() {
-        return enCola;
-    }
-
-    public void setEnCola(boolean enCola) {
-        this.enCola = enCola;
+    /**
+     * A socio is waiting at a station if estacion is not null.
+     */
+    public boolean isEsperando() {
+        return estacion != null;
     }
 }

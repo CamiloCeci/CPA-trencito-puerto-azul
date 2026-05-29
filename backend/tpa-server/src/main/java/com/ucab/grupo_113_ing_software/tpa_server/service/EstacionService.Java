@@ -35,4 +35,22 @@ public class EstacionService {
         }
         return estacion;
     }
+
+    public Estacion subirContadorPersonasEnCola(Long id) {
+        Estacion estacion = estacionRepository.findById(id).orElse(null);
+        if (estacion != null) {
+            estacion.subirContador();
+            return estacionRepository.save(estacion);
+        }
+        return null;
+    }
+
+    public Estacion bajarContadorPersonasEnCola(Long id) {
+        Estacion estacion = estacionRepository.findById(id).orElse(null);
+        if (estacion != null) {
+            estacion.bajarContador();
+            return estacionRepository.save(estacion);
+        }
+        return null;
+    }
 }

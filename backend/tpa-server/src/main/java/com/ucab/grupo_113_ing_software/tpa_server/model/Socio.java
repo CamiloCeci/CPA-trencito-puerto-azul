@@ -27,21 +27,19 @@ public class Socio extends Usuario {
         this.socioEstacion = socioEstacion;
     }
 
-    // Convenience methods that delegate to socioEstacion
-
-    public boolean isEnCola() {
-        return socioEstacion != null && socioEstacion.isEnCola();
-    }
-
-    public void setEnCola(boolean enCola) {
-        if (socioEstacion != null) {
-            socioEstacion.setEnCola(enCola);
-        }
-    }
-
+    /**
+     * Returns the ID of the current station, or null if not waiting at any station.
+     */
     public Long getIdEstacionActual() {
         return socioEstacion != null && socioEstacion.getEstacion() != null
                 ? socioEstacion.getEstacion().getId()
                 : null;
+    }
+
+    /**
+     * Whether this socio is currently waiting at a station.
+     */
+    public boolean isEsperando() {
+        return socioEstacion != null && socioEstacion.isEsperando();
     }
 }
