@@ -9,17 +9,12 @@ public class Administrador extends Operador {
 
     public Administrador() {
         super();
+        super.setRol(Rol.ADMINISTRADOR);
     }
 
     public Administrador(Long id, String cedula, String clave) {
-        super(id, cedula, clave); // Llama al constructor de Operador
-        // Spring H2 sabrá que es un administrador por el @DiscriminatorValue
+        super(id, cedula, clave);
+        super.setRol(Rol.ADMINISTRADOR);
     }
-
-
-
-
-
-
 
 }

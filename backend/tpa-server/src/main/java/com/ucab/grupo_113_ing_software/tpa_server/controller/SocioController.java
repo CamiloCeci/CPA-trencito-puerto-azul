@@ -1,7 +1,6 @@
 package com.ucab.grupo_113_ing_software.tpa_server.controller;
 
 import com.ucab.grupo_113_ing_software.tpa_server.service.SocioService;
-import com.ucab.grupo_113_ing_software.tpa_server.model.Administrador;
 import com.ucab.grupo_113_ing_software.tpa_server.model.Socio;
 
 import java.util.List;
