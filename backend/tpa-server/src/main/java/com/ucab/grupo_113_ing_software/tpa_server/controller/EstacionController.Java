@@ -19,6 +19,8 @@ public class EstacionController {
         this.estacionService = estacionService;
     }
 
+    // JSON para esta ruta: { "nombre": "Prueba", "latitude": 123, "longitude": 123 }
+
     @PostMapping("/")
     public ResponseEntity<Estacion> crearEstacion(@RequestBody Estacion estacion) {
         Estacion saved = estacionService.crearEstacion(estacion);
@@ -31,7 +33,7 @@ public class EstacionController {
         return ResponseEntity.ok(estaciones);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}/")
     public ResponseEntity<?> eliminarEstacion(@PathVariable Long id) {
         Estacion estacion = estacionService.eliminarEstacion(id);
         if (estacion == null) {

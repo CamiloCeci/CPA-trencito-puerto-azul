@@ -47,6 +47,8 @@ public class TrenController {
             return ResponseEntity.badRequest().body(response);
     }
 
+    // JSON para esta ruta: {"puestos": 123}
+
     @PatchMapping("/")
     public ResponseEntity<?> updatePuestosLlenos(@RequestBody PuestoPayload puestos) {
         boolean exito = trenService.setPuestosLlenos(puestos.puestos());

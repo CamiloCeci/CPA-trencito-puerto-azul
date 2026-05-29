@@ -19,14 +19,14 @@ public class VIPController {
         this.vipService = vipService;
     }
 
-    /* Json para meter usuarios: { "cedula": "prueba", "clave": "prueba" }*/
+    // JSON para esta ruta: { "cedula": "prueba", "clave": "prueba" }
 
     @PostMapping("/")
     public ResponseEntity<VIP> createVIP(@RequestBody VIP vip) {
         return ResponseEntity.status(HttpStatus.CREATED).body(vipService.crearVIP(vip));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/")
     public ResponseEntity<VIP> getVIPById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(vipService.findById(id));
     }
@@ -36,7 +36,7 @@ public class VIPController {
         return ResponseEntity.status(HttpStatus.OK).body(vipService.findByCedula(cedula));
     }
 
-    @GetMapping("/all")
+    @GetMapping("/all/")
     public ResponseEntity<List<VIP>> getAllVIPs() {
         return ResponseEntity.status(HttpStatus.OK).body(vipService.getAllVIPs());
     }

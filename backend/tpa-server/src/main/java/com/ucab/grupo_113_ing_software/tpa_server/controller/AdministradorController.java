@@ -19,12 +19,14 @@ public class AdministradorController {
         this.administradorService = administradorService;
     }
 
+    // JSON para esta ruta: { "cedula": "prueba", "clave": "prueba" }
+
     @PostMapping("/")
     public ResponseEntity<Administrador> createAdministrador(@RequestBody Administrador administrador) {
         return ResponseEntity.status(HttpStatus.CREATED).body(administradorService.crearAdministrador(administrador));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/")
     public ResponseEntity<Administrador> getAdministradorById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(administradorService.findById(id));
     }
@@ -34,7 +36,7 @@ public class AdministradorController {
         return ResponseEntity.status(HttpStatus.OK).body(administradorService.findByCedula(cedula));
     }
 
-    @GetMapping("/all")
+    @GetMapping("/all/")
     public ResponseEntity<List<Administrador>> getAllAdministradores() {
         return ResponseEntity.status(HttpStatus.OK).body(administradorService.getAllAdministradores());
     }

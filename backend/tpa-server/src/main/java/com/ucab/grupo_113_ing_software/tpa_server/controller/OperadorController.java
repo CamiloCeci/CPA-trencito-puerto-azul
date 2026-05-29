@@ -19,12 +19,14 @@ public class OperadorController {
         this.operadorService = operadorService;
     }
 
+    // JSON para esta ruta: { "cedula": "prueba", "clave": "prueba" }
+
     @PostMapping("/")
     public ResponseEntity<Operador> createOperador(@RequestBody Operador operador) {
         return ResponseEntity.status(HttpStatus.CREATED).body(operadorService.crearOperador(operador));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/")
     public ResponseEntity<Operador> getOperadorById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(operadorService.findById(id));
     }
@@ -34,7 +36,7 @@ public class OperadorController {
         return ResponseEntity.status(HttpStatus.OK).body(operadorService.findByCedula(cedula));
     }
 
-    @GetMapping("/all")
+    @GetMapping("/all/")
     public ResponseEntity<List<Operador>> getAllOperadores() {
         return ResponseEntity.status(HttpStatus.OK).body(operadorService.getAllOperadores());
     }

@@ -18,6 +18,8 @@ public class CoordenadaGpsController {
         this.gpsService = new GpsService(gpsCoordenadasRepository);
     }
 
+    // No se le pasa JSON
+
     @GetMapping("/")
     public ResponseEntity<CoordenadaGps> getCoordenadaGps() {
         return gpsCoordenadasRepository.findById((long) 1).map(coord -> ResponseEntity.ok().body(coord)).orElse(ResponseEntity.notFound().build());

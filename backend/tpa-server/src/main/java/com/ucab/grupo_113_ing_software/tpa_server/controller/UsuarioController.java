@@ -22,12 +22,14 @@ public class UsuarioController {
         this.usuarioService = usuarioService;
     }
 
+    // JSON para esta ruta: { "cedula": "prueba", "clave": "prueba" }
+
     @GetMapping("/")
     public List<Usuario> getAllUsers() {
         return usuarioService.getAllUsuarios();
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/")
     public ResponseEntity<Usuario> getUserById(@PathVariable Long id) {
         Usuario user = usuarioService.findById(id);
         if (user != null) {
@@ -36,17 +38,7 @@ public class UsuarioController {
         return ResponseEntity.notFound().build();
     }
 
-    /*
-     * @PostMapping("/") Nota: no deberia crearse nunca un objeto Usuario (siemrpe
-     * debe tener rol)
-     * public ResponseEntity<Usuario> createUser(@RequestBody Usuario usuario) {
-     * return
-     * ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.crearUsuario(
-     * usuario));
-     * }
-     */
-
-    @PostMapping("/login")
+    @PostMapping("/login/")
     public ResponseEntity<Usuario> login(@RequestBody LoginPayload loginPayload) {
         String cedula = loginPayload.body().cedula();
         String clave = loginPayload.body().clave();

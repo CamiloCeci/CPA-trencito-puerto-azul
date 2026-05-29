@@ -20,12 +20,14 @@ public class SocioController {
         this.socioService = socioService;
     }
 
+    // JSON para esta ruta: { "cedula": "prueba", "clave": "prueba" }
+
     @PostMapping("/")
     public ResponseEntity<Socio> createSocio(@RequestBody Socio socio) {
         return ResponseEntity.status(HttpStatus.CREATED).body(socioService.crearSocio(socio));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}/")
     public ResponseEntity<Socio> getSocioById(@PathVariable Long id) {
         return ResponseEntity.status(HttpStatus.OK).body(socioService.findById(id));
     }
@@ -35,7 +37,7 @@ public class SocioController {
         return ResponseEntity.status(HttpStatus.OK).body(socioService.findByCedula(cedula));
     }
 
-    @GetMapping("/all")
+    @GetMapping("/all/")
     public ResponseEntity<List<Socio>> getAllSocios() {
         return ResponseEntity.status(HttpStatus.OK).body(socioService.getAllSocios());
     }

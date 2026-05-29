@@ -3,8 +3,6 @@ package com.ucab.grupo_113_ing_software.tpa_server.controller;
 import com.ucab.grupo_113_ing_software.tpa_server.dto.HoraRequest;
 import com.ucab.grupo_113_ing_software.tpa_server.model.Disponibilidad;
 import com.ucab.grupo_113_ing_software.tpa_server.service.DisponibilidadService;
-import org.apache.coyote.Response;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,18 +13,18 @@ public class DisponibilidadController {
     private final DisponibilidadService disponibilidadService;
 
 
-    // JSON para esta Ruta: {"horaDesde": "HH:mm", "horaHasta": "HH:mm"}
+    // JSON para esta ruta: {"horaDesde": "HH:mm", "horaHasta": "HH:mm"}
 
     public DisponibilidadController(DisponibilidadService disponibilidadService) {
         this.disponibilidadService = disponibilidadService;
     }
 
-    @GetMapping("/desde")
+    @GetMapping("/desde/")
     public ResponseEntity<?> getDesde() {
         return ResponseEntity.ok(disponibilidadService.getDesde());
     }
 
-    @GetMapping("/hasta")
+    @GetMapping("/hasta/")
     public ResponseEntity<?> getHasta() {
         return ResponseEntity.ok(disponibilidadService.getHasta());
     }
