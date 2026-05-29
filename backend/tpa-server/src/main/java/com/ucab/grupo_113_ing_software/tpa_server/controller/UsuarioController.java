@@ -15,28 +15,37 @@ import java.util.List;
 @RequestMapping("/api/v1/users")
 @CrossOrigin(origins = "*")
 public class UsuarioController {
-    private final UsuarioRepository usuarioRepository;
+
     private final UsuarioService usuarioService;
 
-    public UsuarioController(UsuarioRepository usuarioRepository) {
-        this.usuarioRepository = usuarioRepository;
-        this.usuarioService = new UsuarioService(usuarioRepository);
+    public UsuarioController(UsuarioService usuarioService) {
+
+        this.usuarioService = usuarioService;
     }
 
     @GetMapping("/")
     public List<Usuario> getAllUsers() {
-        return usuarioRepository.findAll();
+        return usuarioService.getAllUsuarios();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Usuario> getUserById(@PathVariable Long id) {
-        return usuarioRepository.findById(id).map(user -> ResponseEntity.ok().body(user)).orElse(ResponseEntity.notFound().build());
+        Usuario user = usuarioService.findById(id);
+        if (user != null) {
+            return ResponseEntity.ok().body(user);
+        }
+        return ResponseEntity.notFound().build();
     }
-//
-//    @PostMapping("/")
-//    public ResponseEntity<Usuario> createUser(@RequestBody Usuario usuario) {
-//        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioRepository.save(usuario));
-//    }
+
+    /*
+     * @PostMapping("/") Nota: no deberia crearse nunca un objeto Usuario (siemrpe
+     * debe tener rol)
+     * public ResponseEntity<Usuario> createUser(@RequestBody Usuario usuario) {
+     * return
+     * ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.crearUsuario(
+     * usuario));
+     * }
+     */
 
     @PostMapping("/login")
     public ResponseEntity<Usuario> login(@RequestBody LoginPayload loginPayload) {

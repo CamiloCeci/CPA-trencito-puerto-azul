@@ -1,8 +1,9 @@
 package com.ucab.grupo_113_ing_software.tpa_server.service;
 
-
 import com.ucab.grupo_113_ing_software.tpa_server.model.CoordenadaGps;
 import com.ucab.grupo_113_ing_software.tpa_server.repository.GpsCoordenadasRepository;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,6 +14,7 @@ import java.util.function.ToLongFunction;
 public class GpsService {
     private final GpsCoordenadasRepository gpsCoordenadasRepository;
 
+    @Autowired
     public GpsService(GpsCoordenadasRepository gpsCoordenadasRepository) {
         this.gpsCoordenadasRepository = gpsCoordenadasRepository;
     }
