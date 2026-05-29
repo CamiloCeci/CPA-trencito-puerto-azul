@@ -59,7 +59,7 @@
                     <button class="btn-station-action action-add" onclick="unirseAColaVirtual()">
                         ➕ Añadirse a la cola
                     </button>
-                    <button class="btn-station-action action-remove" onclick="alterStationQueue(-1)">
+                    <button class="btn-station-action action-remove" onclick="eliminarseDeColaVirtual()">
                         ➖ Eliminarse de la cola
                     </button>
                     <button class="btn-station-action action-time" onclick="showEstimatedTime()">
@@ -85,6 +85,24 @@
                     </p>
                 <div class="modal-actions-horizontal">
                     <button class="btn-modal-confirm" style="width: 100%;" onclick="presionarOKCola()">OK</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="cierreServicioModal" style="display: none; z-index: 9999;">
+            <div class="modal-card" style="max-width: 400px; padding: 24px; text-align: center;">
+                <div class="status-icon-container" style="margin-bottom: 16px;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <h3>Servicio No Disponible</h3>
+                <p class="modal-description-status" id="mensajeCierreTexto" style="margin-top: 12px; margin-bottom: 24px; color: #4b5563; font-size: 15px; line-height: 1.5;">
+                    </p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-confirm" style="width: 100%; background-color: #dc2626;" onclick="redirigirAInicioSesion()">Confirmar</button>
                 </div>
             </div>
         </div>
