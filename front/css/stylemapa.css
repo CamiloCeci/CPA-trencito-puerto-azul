@@ -630,3 +630,107 @@ html {
 .btn-station-action:active {
     transform: scale(0.98);
 }
+
+/* ==========================================================================
+   FOOTER INSTITUCIONAL (Marcaje y Atribución Legal - CENTRADO ABSOLUTO)
+   ========================================================================== */
+.app-footer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px); 
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 24px;
+    z-index: 1050;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+/* Contenedor Izquierdo: Imagen / Logo */
+.footer-left {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    z-index: 2;
+}
+
+.footer-logo {
+    height: 20px;
+    width: auto;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+
+/* Contenedor Central: Centrado geométrico perfecto en escritorio */
+.footer-center {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    z-index: 1;
+}
+
+/* Contenedor Derecho: Enlace Legal */
+.footer-right {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    z-index: 2;
+}
+
+.footer-link {
+    color: #0044cc;
+    text-decoration: none;
+    font-weight: 600;
+    margin-left: 4px;
+    transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+    color: #0033aa;
+    text-decoration: underline;
+}
+
+
+/* ADAPTACIÓN PARA DISPOSITIVOS MÓVILES (Pantallas menores a 768px) */
+@media (max-width: 767px) {
+    .app-footer {
+        height: auto;                /* Permitimos que crezca según el contenido apilado */
+        padding: 12px 16px;          /* Más espacio interno vertical */
+        flex-direction: column;      /* Apilamos los elementos uno debajo de otro */
+        justify-content: center;
+        gap: 8px;                    
+    }
+
+    /* Desactivamos el posicionamiento absoluto en móviles para evitar colisiones */
+    .footer-center {
+        position: static;
+        transform: none;
+        white-space: normal;         
+        order: 2;                    
+    }
+
+    .footer-left {
+        order: 1;                    
+        justify-content: center;
+        width: 100%;
+    }
+
+    .footer-right {
+        order: 3;                    
+        justify-content: center;
+        width: 100%;
+    }
+}
