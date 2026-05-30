@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.*;
 public class DisponibilidadController {
     private final DisponibilidadService disponibilidadService;
 
-
     // JSON para esta ruta: {"horaDesde": "HH:mm", "horaHasta": "HH:mm"}
 
     public DisponibilidadController(DisponibilidadService disponibilidadService) {

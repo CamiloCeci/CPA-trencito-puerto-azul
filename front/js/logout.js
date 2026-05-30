@@ -37,8 +37,27 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     if (confirmBtn) {
-        confirmBtn.onclick = () => {
+        confirmBtn.onclick = async () => {
             sessionStorage.clear();
+
+            const candidatePaths = [
+                `${window.location.origin}/front/inicsesion.html`,
+                `${window.location.origin}/inicsesion.html`,
+                'inicsesion.html'
+            ];
+
+            for (const path of candidatePaths) {
+                try {
+                    const response = await fetch(path, { method: 'HEAD', cache: 'no-store' });
+                    if (response.ok) {
+                        window.location.href = path;
+                        return;
+                    }
+                } catch (error) {
+                    // ignora y prueba la siguiente ruta
+                }
+            }
+
             window.location.href = 'inicsesion.html';
         };
     }

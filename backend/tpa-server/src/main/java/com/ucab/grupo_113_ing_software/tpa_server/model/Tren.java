@@ -2,18 +2,18 @@ package com.ucab.grupo_113_ing_software.tpa_server.model;
 
 public class Tren {
     private final int capMax = 20;
-    private int puestosLlenos;
+    private int puestosLibres;
 
-    public Tren(int puestosLlenos) {
-        this.puestosLlenos = puestosLlenos;
+    public Tren(int puestosLibres) {
+        this.puestosLibres = puestosLibres;
     }
 
     public int getCapMax() {
         return capMax;
     }
 
-    public int getPuestosLlenos() {
-        return puestosLlenos;
+    public int getPuestosLibres() {
+        return puestosLibres;
     }
 
     public boolean setPuestosLlenos(int puestosLlenos) {
@@ -21,21 +21,21 @@ public class Tren {
         {
             return false;
         }
-        this.puestosLlenos = puestosLlenos;
+        this.puestosLibres = puestosLlenos;
         return true;
     }
 
     public boolean aumentarPuestosLlenos() {
-        if (puestosLlenos < capMax) {
-            this.puestosLlenos++;
+        if (puestosLibres < capMax) {
+            this.puestosLibres++;
             return true;
         }
         return false;
     }
 
     public boolean disminuirPuestosLlenos() {
-        if (puestosLlenos > 0) {
-            this.puestosLlenos--;
+        if (puestosLibres > 0) {
+            this.puestosLibres--;
             return true;
         }
         return false;
