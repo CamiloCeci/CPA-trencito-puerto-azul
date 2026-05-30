@@ -1,38 +1,95 @@
-import { authService } from '../services/authService.js';
+import { AuthService } from '../services/AuthService.js';
 
-const loginForm = document.getElementById('loginForm');
-const mensajeError = document.getElementById('mensajeError');
+export const LoginController = {
+    init() {
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.addEventListener('submit', this.onSubmit.bind(this));
+        }
 
-loginForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
+        const helpLink = document.getElementById('helpAccessLink');
+        if (helpLink) {
+            helpLink.addEventListener('click', this.onHelpClick.bind(this));
+        }
 
-    // 🔍 Extraemos los valores usando .value
-    const cedula = document.getElementById('cedula').value;
-    const clave = document.getElementById('clave').value;
+        this.restoreRememberMe();
+    },
 
-    try {
-        // Llamamos al servicio para validar
-        const usuario = await authService.login(cedula, clave);
+    async onSubmit(e) {
+        e.preventDefault();
         
-        console.log('Login exitoso:', usuario);
+        const cedulaField = document.getElementById('cedulaInput');
+        const claveField = document.getElementById('claveInput');
+        const rememberCheck = document.getElementById('rememberCheckbox');
+
+        const cedula = cedulaField.value;
+        const clave = claveField.value;
+
+        if (!this.validateForm(cedula, clave)) return;
+
+        this.showMessage("🚂✨ ¡Bienvenido! Conectando al sistema del Trencito Puerto Azul.", false);
+
+        try {
+            const usuario = await AuthService.login(cedula, clave);
+            
+            if (rememberCheck.checked) {
+                localStorage.setItem('puertoAzul_rememberMe', 'true');
+            } else {
+                localStorage.removeItem('puertoAzul_rememberMe');
+            }
+
+            this.redirectByUserRole(usuario);
+        } catch (error) {
+            this.showMessage("❌ Error: " + error.message, true);
+        }
+    },
+
+    validateForm(cedula, clave) {
+        if (!cedula.trim() || !clave.trim()) {
+            this.showMessage("❌ Por favor, completa la cédula y la clave de acceso.", true);
+            return false;
+        }
+        return true;
+    },
+
+    redirectByUserRole(usuario) {
+        setTimeout(() => {
+            const routes = {
+                'ADMINISTRADOR': 'mapaadmin.html',
+                'OPERADOR': 'mapaoperador.html',
+                'VIP': 'mapavip.html'
+            };
+            window.location.href = routes[usuario.rol] || 'mapasocio.html';
+        }, 1000);
+    },
+
+    showMessage(msg, isError = false) {
+        const toastEl = document.getElementById('liveToastMsg');
+        if (!toastEl) return;
+
+        toastEl.textContent = msg;
+        toastEl.style.background = isError ? "rgba(220, 70, 60, 0.95)" : "rgba(31, 63, 166, 0.95)";
+        toastEl.classList.add('show');
         
-        // Guardamos al usuario en la memoria del navegador (SessionStorage)
-        sessionStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
+        setTimeout(() => {
+            toastEl.classList.remove('show');
+        }, 3000);
+    },
 
-        // 🔀 Redirección según el rol
-        redirigirSegunRol(usuario.rol);
+    onHelpClick(e) {
+        e.preventDefault();
+        this.showMessage("📞 Soporte: soporte@puertoazul.com", false);
+    },
 
-    } catch (error) {
-        // Si hay error, mostramos el mensaje rojo del HTML
-        mensajeError.style.display = 'block';
-        mensajeError.innerText = error.message;
+    restoreRememberMe() {
+        const rememberCheck = document.getElementById('rememberCheckbox');
+        if (rememberCheck && localStorage.getItem('puertoAzul_rememberMe') === 'true') {
+            rememberCheck.checked = true;
+        }
     }
-});
+};
 
-function redirigirSegunRol(rol) {
-    if (rol === 'ADMINISTRADOR' || rol === 'OPERADOR') {
-        window.location.href = 'administrador.html';
-    } else {
-        window.location.href = 'socio.html';
-    }
+// Initialize if we are on the login page
+if (document.getElementById('loginForm')) {
+    LoginController.init();
 }

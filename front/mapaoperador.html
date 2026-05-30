@@ -200,8 +200,6 @@
                 <div class="footer-legal" style="color: #9cb2ca;">
                     Desarrollado con <a href="https://leafletjs.com" target="_blank" rel="noopener noreferrer"
                         class="footer-link">Leaflet</a>
-                    <br>© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer"
-                        class="footer-link">OpenStreetMap</a> Contributors
                 </div>
             </div>
         </footer>
@@ -211,7 +209,11 @@
         integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-    <script src="js/services/mapa.js"></script>
+    
+    <script type="module" src="js/controllers/MapController.js"></script>
+    <script type="module" src="js/controllers/QueueController.js"></script>
+    <script type="module" src="js/controllers/ScheduleController.js"></script>
+    <script type="module" src="js/controllers/SeatsController.js"></script>
+    <script type="module" src="js/controllers/LogoutController.js"></script>
 </body>
-
 </html>
