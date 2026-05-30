@@ -49,6 +49,7 @@ let serviceStartTime = "07:00";
 let serviceEndTime = "22:00";
 // para validar los mensajes de cola
 let estadoColaUsuario = null;
+let userWaitingStationId = null;
 // Variable global para el marcador del trencito
 let trencitoMarker = null;
 
@@ -78,6 +79,18 @@ let stationData = {};
 
 async function fetchInitialData() {
     try {
+        const usuarioStr = sessionStorage.getItem('usuarioLogueado');
+        if (usuarioStr) {
+            const usuario = JSON.parse(usuarioStr);
+            const checkRes = await fetch(`http://localhost:8080/api/v1/socio-estacion/socio/${usuario.id}/`);
+            if (checkRes.ok) {
+                const data = await checkRes.json();
+                if (data && data.estacion) {
+                    userWaitingStationId = data.estacion.id;
+                }
+            }
+        }
+
         const estRes = await fetch('http://localhost:8080/api/v1/estaciones/');
         if (estRes.ok) {
             const estaciones = await estRes.json();
@@ -119,8 +132,9 @@ function createStationMarker(id, data) {
     customDiv.innerHTML = `
         <div class="marker-container">
             <div class="gps-pin pin-blue"></div>
+            <div class="user-waiting-indicator" id="user-indicator-${id}" style="display: ${userWaitingStationId === id ? 'block' : 'none'};"></div>
             <div class="badge" id="badge-${id}" style="display: ${mostrarNumeroCola ? 'flex' : 'none'};">
-                ${data.wait}
+                <span id="badge-text-${id}">${data.wait}</span>
             </div>
             <div class="tooltip">${data.name}</div>
         </div>
@@ -161,7 +175,7 @@ function connectWebSocket() {
     stompClient.debug = null;
 
     stompClient.connect({}, function (frame) {
-        console.log('✅ Conectado a WebSockets (Estaciones y Tren)');
+        console.log('✅ Conectado a WebSockets (Estaciones, Tren y GPS)');
 
         stompClient.subscribe('/topic/estaciones', function (message) {
             const data = JSON.parse(message.body);
@@ -185,6 +199,12 @@ function connectWebSocket() {
 
             const sc = document.getElementById('seatsCounter');
             if (sc) sc.innerText = currentAvailableSeats;
+        });
+
+        stompClient.subscribe('/topic/trencito/posicion', function (message) {
+            const data = JSON.parse(message.body);
+            console.log("gps: ", data);
+            actualizarPosicionTren(data);
         });
 
     }, function (error) {
@@ -267,18 +287,26 @@ function openServiceModal() {
 }
 
 function validateTimeInput(input) {
+    const prevLen = input._prevLen || 0;
     let val = input.value.replace(/[^0-9:]/g, '');
-    if (val.length === 2 && !val.includes(':') && input.value.length > val.length - 1) {
+    // Only auto-insert colon when typing forward (not deleting)
+    if (val.length === 2 && !val.includes(':') && val.length > prevLen) {
         val = val + ':';
     }
     if (val.length > 5) val = val.substring(0, 5);
     input.value = val;
+    input._prevLen = val.length;
 }
 
 async function confirmServiceHours() {
-    const startVal = document.getElementById('serviceStartInput').value.trim();
-    const endVal = document.getElementById('serviceEndInput').value.trim();
+    let startVal = document.getElementById('serviceStartInput').value.trim();
+    let endVal = document.getElementById('serviceEndInput').value.trim();
     const errorMsg = document.getElementById('serviceErrorMsg');
+
+    // Zero-pad single-digit hours (e.g. "7:00" -> "07:00")
+    const shortTimeRegex = /^(\d):([0-5]\d)$/;
+    if (shortTimeRegex.test(startVal)) startVal = '0' + startVal;
+    if (shortTimeRegex.test(endVal)) endVal = '0' + endVal;
 
     const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
     if (!timeRegex.test(startVal) || !timeRegex.test(endVal)) {
@@ -541,6 +569,7 @@ async function openStatusModal() {
         if (response.ok) {
             const data = await response.json();
             // Actualizamos las variables globales, asegurando el formato HH:mm
+            console.log(data);
             if (data.desde) serviceStartTime = data.desde.substring(0, 5);
             if (data.hasta) serviceEndTime = data.hasta.substring(0, 5);
         } else {
@@ -636,10 +665,15 @@ async function unirseAColaVirtual() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+        if (res.status === 409) {
+            abrirMensajeCola("Ya estás en la cola, espera unos momentos a que el tren pase por ti");
+            return;
+        }
         if (!res.ok) throw new Error('Error al unirse a la cola');
 
         stationData[activeStationId].wait += 1;
         estadoColaUsuario = 'normal';
+        userWaitingStationId = activeStationId;
 
         sincronizarBadgeMapa(activeStationId);
         updateStationModalDisplay();
@@ -675,10 +709,15 @@ async function unirseAColaPrioridad() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
+        if (res.status === 405) {
+            abrirMensajeCola("Ya estás en la cola, espera unos momentos a que el tren pase por ti");
+            return;
+        }
         if (!res.ok) throw new Error('Error al unirse a la cola VIP');
 
         stationData[activeStationId].wait += 1;
         estadoColaUsuario = 'prioridad';
+        userWaitingStationId = activeStationId;
 
         console.log(`Pasajero prioritario añadido a la estación: ${stationData[activeStationId].name}`);
 
@@ -704,21 +743,41 @@ async function eliminarseDeColaVirtual() {
     }
     const usuario = JSON.parse(usuarioStr);
 
-    // if (estadoColaUsuario === null) {
-    //     abrirMensajeCola("No te encuentras registrado en la cola virtual de ninguna estación.");
-    //     return;
-    // }
-
     try {
+        const checkRes = await fetch(`http://localhost:8080/api/v1/socio-estacion/socio/${usuario.id}/`);
+        if (checkRes.status === 404) {
+            abrirMensajeCola("No estás actualmente en ninguna cola.");
+            return;
+        }
+        if (!checkRes.ok) throw new Error('Error al verificar la cola actual');
+
+        const data = await checkRes.json();
+        if (!data || !data.estacion) {
+            abrirMensajeCola("No estás actualmente en ninguna cola.");
+            return;
+        }
+
+        if (data.estacion.id != activeStationId) {
+            abrirMensajeCola("No puedes salirte de esta cola, porque estás esperando en otra estación.");
+            return;
+        }
+
         const res = await fetch(`http://localhost:8080/api/v1/socio-estacion/socio/${usuario.id}/desasignar/`, {
             method: 'PUT'
         });
-        if (!res.ok) throw new Error('Error al salir de la cola');
+
+        if (res.status === 404) {
+            abrirMensajeCola("No estás actualmente en ninguna cola.");
+            return;
+        }
+
+        if (!res.ok) throw new Error('Error al salir de la cola.');
 
         let currentWait = stationData[activeStationId].wait;
         stationData[activeStationId].wait = Math.max(0, currentWait - 1);
 
         estadoColaUsuario = null;
+        userWaitingStationId = null;
 
         sincronizarBadgeMapa(activeStationId);
         updateStationModalDisplay();
@@ -726,20 +785,27 @@ async function eliminarseDeColaVirtual() {
         abrirMensajeCola("Te has eliminado de la cola exitosamente. Ya no estás en la fila virtual.");
     } catch (err) {
         console.error(err);
-        alert("No se pudo salir de la cola en el servidor");
+        alert("No se pudo salir de la cola en el servidor.");
     }
 }
 
 // Función auxiliar para no repetir código de actualización del mapa
 function sincronizarBadgeMapa(id) {
     // Sincroniza número en el badge redondo
+    const badgeText = document.getElementById(`badge-text-${id}`);
+    if (badgeText) {
+        badgeText.innerText = stationData[id].wait;
+    }
     const badge = document.getElementById(`badge-${id}`);
     if (badge) {
-        badge.innerText = stationData[id].wait;
         badge.style.display = (tieneSidebar && stationData[id].wait > 0) ? 'flex' : 'none';
     }
+    const userIndicator = document.getElementById(`user-indicator-${id}`);
+    if (userIndicator) {
+        userIndicator.style.display = (userWaitingStationId === id) ? 'block' : 'none';
+    }
 
-    // 🔥 BUSCA EL CONTENEDOR DEL PIN DE LEAFLET E INYECTA LA ANIMACIÓN
+    // BUSCA EL CONTENEDOR DEL PIN DE LEAFLET E INYECTA LA ANIMACIÓN
     // Buscamos el elemento HTML del marcador a través del ID generado dinámicamente en tu bucle de inicialización
     const markerElement = document.querySelector(`.station-node[data-id="${id}"] .marker-container, #marker-container-${id}`);
 
@@ -820,8 +886,8 @@ async function verificarHorarioServicio() {
         if (dispRes.ok) {
             const data = await dispRes.json();
             if (data && data.desde && data.hasta) {
-                serviceStartTime = data.desde;
-                serviceEndTime = data.hasta;
+                serviceStartTime = data.desde.substring(0, 5);
+                serviceEndTime = data.hasta.substring(0, 5);
             }
         }
     } catch (error) {
@@ -866,15 +932,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     //setInterval(verificarHorarioServicio, 60000);
 
     // Simulación de prueba a los 3 segundos de cargar la página
-    setTimeout(() => {
-        actualizarPosicionTren({
-            "id": 1,
-            "latitude": 10.6205,  // Usa una coordenada dentro de los límites permitidos de Puerto Azul
-            "longitude": -66.7415,
-            "speed": 13.0,
-            "timestamp": "2026-05-25T23:58:00.206789"
-        });
-    }, 3000);
+    // setTimeout(() => {
+    //     actualizarPosicionTren({
+    //         "id": 1,
+    //         "latitude": 10.6205,  // Usa una coordenada dentro de los límites permitidos de Puerto Azul
+    //         "longitude": -66.7415,
+    //         "speed": 13.0,
+    //         "timestamp": "2026-05-25T23:58:00.206789"
+    //     });
+    // }, 3000);
 });
 
 // ==========================================================================
@@ -949,6 +1015,6 @@ function actualizarPosicionTren(data) {
 
     // OPCIONAL: Descomenta la línea de abajo si quieres que la cámara del mapa 
     // siga automáticamente al tren cada vez que se mueva:
-    map.panTo(nuevaCoordenada);
+    // map.panTo(nuevaCoordenada);
 }
 

@@ -17,4 +17,6 @@ public interface SocioEstacionRepository extends JpaRepository<SocioEstacion, Lo
     List<SocioEstacion> findByEstacionIsNotNull();
 
     void deleteBySocioId(Long socioId);
+
+    void deleteByEstacionId(Long estacionId);
 }

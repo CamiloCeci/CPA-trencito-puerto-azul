@@ -57,13 +57,14 @@ html {
     background: var(--accent-blue);
     transform: rotate(-45deg);
     cursor: pointer;
-    box-shadow: -2px 2px 4px rgba(0,0,0,0.2);
+    box-shadow: -2px 2px 4px rgba(0, 0, 0, 0.2);
     transition: transform 0.2s, background-color 0.2s;
 }
 
 /* 🌟 EFECTO HOVER AMPLIADO: Escalamos el badge del contador al mismo tiempo */
 .station-marker-leaflet .marker-container:hover .badge {
-    transform: scale(1.2); /* Lo agrandamos exactamente el mismo 20% que el pin */
+    transform: scale(1.2);
+    /* Lo agrandamos exactamente el mismo 20% que el pin */
 }
 
 .gps-pin::after {
@@ -80,7 +81,9 @@ html {
     background-color: #0044cc;
 }
 
-.pin-blue { background: #0044cc; }
+.pin-blue {
+    background: #0044cc;
+}
 
 /* Tooltip nativo */
 .tooltip {
@@ -93,7 +96,7 @@ html {
     font-size: 12px;
     font-weight: 500;
     white-space: nowrap;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     pointer-events: none;
 }
 
@@ -113,8 +116,22 @@ html {
     align-items: center;
     justify-content: center;
     border: 2px solid white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-    transition: transform 0.2s ease; 
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease;
+}
+
+.user-waiting-indicator {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 14px;
+    height: 14px;
+    background-color: #3b82f6;
+    /* Blue circle */
+    border-radius: 50%;
+    border: 2px solid white;
+    z-index: 20;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* ==========================================================================
@@ -124,7 +141,8 @@ html {
     position: absolute;
     top: 20px;
     right: 20px;
-    z-index: 1100; /* 👈 Subido de 100 a 1100 para quedar sobre el mapa */
+    z-index: 1100;
+    /* 👈 Subido de 100 a 1100 para quedar sobre el mapa */
     display: flex;
     gap: 12px;
 }
@@ -152,7 +170,9 @@ html {
     font-weight: 700;
 }
 
-.value-blue { color: #0044cc; }
+.value-blue {
+    color: #0044cc;
+}
 
 /* Sidebar Izquierda */
 .left-sidebar {
@@ -163,8 +183,9 @@ html {
     width: 280px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(12px);
-    box-shadow: 5px 0 30px rgba(0,0,0,0.05);
-    z-index: 1200; /* 👈 Subido de 200 a 1200 para ganarle a Leaflet */
+    box-shadow: 5px 0 30px rgba(0, 0, 0, 0.05);
+    z-index: 1200;
+    /* 👈 Subido de 200 a 1200 para ganarle a Leaflet */
     transform: translateX(-100%);
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -182,18 +203,18 @@ html {
     border-radius: 50%;
     background: white;
     border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--text-dark);
-    z-index: 1100; 
+    z-index: 1100;
     transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s;
 }
 
 .toggle-btn:hover {
-    transform: scale(1.05); 
+    transform: scale(1.05);
 }
 
 .left-sidebar.open .toggle-btn {
@@ -291,7 +312,9 @@ html {
     transition: background-color 0.2s;
 }
 
-.btn-modal-cancel:hover { background: #e5e7eb; }
+.btn-modal-cancel:hover {
+    background: #e5e7eb;
+}
 
 .btn-modal-confirm {
     flex: 1;
@@ -306,7 +329,9 @@ html {
     transition: background-color 0.2s;
 }
 
-.btn-modal-confirm:hover { background: #0033aa; }
+.btn-modal-confirm:hover {
+    background: #0033aa;
+}
 
 .btn-modal-confirm-blue {
     flex: 1;
@@ -338,7 +363,9 @@ html {
     transition: background-color 0.2s;
 }
 
-.btn-modal-delete:hover { background: #dc2626; }
+.btn-modal-delete:hover {
+    background: #dc2626;
+}
 
 .btn-modal-black {
     flex: 1;
@@ -388,14 +415,15 @@ html {
     border: 2px solid #e5e7eb;
     font-size: 16px;
     font-weight: 700;
-    text-align: center; /* Mantiene la hora perfectamente centrada */
+    text-align: center;
+    /* Mantiene la hora perfectamente centrada */
     color: var(--text-dark);
     outline: none;
     background-color: #ffffff;
 }
 
-.time-field input:focus { 
-    border-color: #0044cc; 
+.time-field input:focus {
+    border-color: #0044cc;
 }
 
 .error-text-modal {
@@ -420,7 +448,9 @@ html {
     outline: none;
 }
 
-.input-container-modal input:focus { border-color: #0044cc; }
+.input-container-modal input:focus {
+    border-color: #0044cc;
+}
 
 /* Eliminar Estación Modal List */
 .station-list-scrollable {
@@ -512,7 +542,9 @@ html {
     transition: background-color 0.2s;
 }
 
-.btn-adjust-blue:hover { background-color: #0033aa; }
+.btn-adjust-blue:hover {
+    background-color: #0033aa;
+}
 
 /* ==========================================================================
    COMPLEMENTOS ADAPTATIVOS PARA LEAFLET (ACTUALIZADO PARA HOVER CON ESCALA)
@@ -523,9 +555,11 @@ html {
 
 /* Tooltip oculto por defecto y con animación de transición suave */
 .station-marker-leaflet .tooltip {
-    bottom: 35px;               /* Lo subimos un poco para que flote bien sobre el pin */
+    bottom: 35px;
+    /* Lo subimos un poco para que flote bien sobre el pin */
     left: 50%;
-    transform: translateX(-50%) translateY(5px); /* Pequeño desplazamiento hacia abajo cuando está oculto */
+    transform: translateX(-50%) translateY(5px);
+    /* Pequeño desplazamiento hacia abajo cuando está oculto */
     visibility: hidden;
     opacity: 0;
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
@@ -541,25 +575,27 @@ html {
 .station-marker-leaflet .marker-container:hover .tooltip {
     visibility: visible;
     opacity: 1;
-    transform: translateX(-50%) translateY(0); /* Sube suavemente a su posición original */
+    transform: translateX(-50%) translateY(0);
+    /* Sube suavemente a su posición original */
 }
 
 /* 🌟 EFECTO HOVER AMPLIADO: Escalamos el icono de la estación al pasar el cursor por encima */
 .station-marker-leaflet .marker-container:hover .gps-pin {
-    transform: rotate(-45deg) scale(1.2); 
+    transform: rotate(-45deg) scale(1.2);
 }
 
 /* Ajustamos el badge para que siempre esté visible sobre el pin, independientemente del texto */
 .station-marker-leaflet .badge {
-    pointer-events: none; 
+    pointer-events: none;
 }
 
 /* ==========================================================================
    POSICIONAMIENTO PERSONALIZADO DEL ZOOM DE LEAFLET
    ========================================================================== */
 .leaflet-top.leaflet-right {
-    top: 145px !important;   /* 👈 Bajamos el zoom para que no colisione con el botón del reloj */
-    right: 12px !important;  
+    top: 145px !important;
+    /* 👈 Bajamos el zoom para que no colisione con el botón del reloj */
+    right: 12px !important;
 }
 
 /* ==========================================================================
@@ -569,16 +605,18 @@ html {
 /* Botón circular flotante */
 .btn-status-circle {
     position: absolute;
-    top: 85px;               /* Ubicado verticalmente debajo de la barra info */
-    right: 20px;             /* Alineado al borde derecho del mapa */
-    z-index: 1100;           
+    top: 85px;
+    /* Ubicado verticalmente debajo de la barra info */
+    right: 20px;
+    /* Alineado al borde derecho del mapa */
+    z-index: 1100;
     width: 44px;
     height: 44px;
     border-radius: 50%;
-    background: #ffffff;      
-    border: 0px solid #0044cc; 
-    color: #0044cc;          
-    box-shadow: 0 2px 14px rgba(0, 0, 2, 0.6); 
+    background: #ffffff;
+    border: 0px solid #0044cc;
+    color: #0044cc;
+    box-shadow: 0 2px 14px rgba(0, 0, 2, 0.6);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -589,7 +627,7 @@ html {
 .btn-status-circle:hover {
     background: #ffffff;
     color: #0044cc;
-    border: 3px solid #0044cc; 
+    border: 3px solid #0044cc;
     box-shadow: 0 0px 0px rgba(0, 0, 2, 0.6);
     transform: scale(1.05);
 }
@@ -679,7 +717,8 @@ html {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 18px 3rem; /* Aumentamos ligeramente el alto vertical con padding */
+    padding: 18px 3rem;
+    /* Aumentamos ligeramente el alto vertical con padding */
     z-index: 1350;
     transition: all 0.3s ease;
 }
@@ -704,9 +743,12 @@ html {
     top: 50%;
     transform: translate(-50%, -50%);
     display: flex;
-    flex-direction: column; /* Forzamos que se coloquen uno debajo del otro */
-    align-items: center;   /* Centrado horizontal perfecto entre líneas */
-    gap: 4px;              /* Espaciado sutil de separación entre los dos textos */
+    flex-direction: column;
+    /* Forzamos que se coloquen uno debajo del otro */
+    align-items: center;
+    /* Centrado horizontal perfecto entre líneas */
+    gap: 4px;
+    /* Espaciado sutil de separación entre los dos textos */
     z-index: 1;
 }
 
@@ -765,8 +807,9 @@ html {
         transform: none;
         order: 2;
     }
-    
-    .copyright-text, .footer-legal {
+
+    .copyright-text,
+    .footer-legal {
         white-space: normal;
         text-align: center;
     }
@@ -793,7 +836,8 @@ html {
 }
 
 .marker-container.vip-active .station-icon-wrapper {
-    background: linear-gradient(135deg, #eab308, #ca8a04) !important; /* Dorado VIP */
+    background: linear-gradient(135deg, #eab308, #ca8a04) !important;
+    /* Dorado VIP */
     box-shadow: 0 0 15px rgba(234, 179, 8, 0.6);
 }
 
@@ -802,10 +846,13 @@ html {
         box-shadow: 0 0 0 0 rgba(234, 179, 8, 0.7);
         transform: scale(1);
     }
+
     50% {
         box-shadow: 0 0 0 25px rgba(234, 179, 8, 0);
-        transform: scale(1.06); /* Crece sutilmente */
+        transform: scale(1.06);
+        /* Crece sutilmente */
     }
+
     100% {
         box-shadow: 0 0 0 0 rgba(234, 179, 8, 0);
         transform: scale(1);
@@ -881,11 +928,13 @@ html {
     justify-content: center;
     width: 40px;
     height: 40px;
-    background-color: #1F3FA6; /* Azul principal de tu paleta */
+    background-color: #1F3FA6;
+    /* Azul principal de tu paleta */
     border: 3px solid #ffffff;
     border-radius: 50%;
     box-shadow: 0 4px 12px rgba(31, 63, 166, 0.5);
-    transition: transform 0.4s linear; /* Hace que el movimiento sea fluido */
+    transition: transform 0.4s linear;
+    /* Hace que el movimiento sea fluido */
 }
 
 .train-icon-wrapper svg {
