@@ -308,6 +308,23 @@ html {
 
 .btn-modal-confirm:hover { background: #0033aa; }
 
+.btn-modal-confirm-blue {
+    flex: 1;
+    background: #0044cc;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-modal-confirm-blue:hover {
+    background: #0033aa;
+}
+
 .btn-modal-delete {
     flex: 1;
     background: #ef4444;
@@ -322,6 +339,34 @@ html {
 }
 
 .btn-modal-delete:hover { background: #dc2626; }
+
+.btn-modal-black {
+    flex: 1;
+    background: #111111;
+    color: white;
+    border: none;
+    padding: 14px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-modal-black:hover {
+    background-color: #27272a;
+}
+
+.logout-modal {
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-modal .modal-card {
+    max-width: 360px;
+    padding: 28px;
+}
 
 /* Horarios Modal */
 .time-inputs-container {
@@ -718,6 +763,43 @@ html {
 }
 
 /* ADAPTACIÓN PARA DISPOSITIVOS MÓVILES (Mantiene el orden limpio) */
+
+/* Botón Cerrar Sesión (fijo, esquina inferior derecha) */
+.btn-logout {
+    position: fixed;
+    right: 20px;
+    bottom: 90px; /* separación sobre el footer */
+    z-index: 1300;
+    background-color: #0044cc;
+    color: white;
+    border: none;
+    padding: 12px 18px;
+    border-radius: 999px;
+    font-weight: 700;
+    box-shadow: 0 6px 18px rgba(0,68,204,0.18);
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-logout:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0,68,204,0.22);
+}
+
+.btn-logout .logout-icon {
+    width: 18px;
+    height: 18px;
+    display: block;
+}
+
+.btn-logout span {
+    display: inline-block;
+    line-height: 1;
+}
+
 @media (max-width: 767px) {
     .app-footer {
         padding: 12px 16px;
