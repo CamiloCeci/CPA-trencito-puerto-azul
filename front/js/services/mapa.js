@@ -150,7 +150,7 @@ function connectWebSocket() {
 
     stompClient.connect({}, function (frame) {
         console.log('✅ Conectado a WebSockets (Estaciones y Tren)');
-        
+
         stompClient.subscribe('/topic/estaciones', function (message) {
             const data = JSON.parse(message.body);
             const id = data.estacionId;
@@ -723,10 +723,27 @@ async function eliminarseDeColaVirtual() {
 
 // Función auxiliar para no repetir código de actualización del mapa
 function sincronizarBadgeMapa(id) {
+    // Sincroniza número en el badge redondo
     const badge = document.getElementById(`badge-${id}`);
     if (badge) {
         badge.innerText = stationData[id].wait;
         badge.style.display = (tieneSidebar && stationData[id].wait > 0) ? 'flex' : 'none';
+    }
+
+    // 🔥 BUSCA EL CONTENEDOR DEL PIN DE LEAFLET E INYECTA LA ANIMACIÓN
+    // Buscamos el elemento HTML del marcador a través del ID generado dinámicamente en tu bucle de inicialización
+    const markerElement = document.querySelector(`.station-node[data-id="${id}"] .marker-container, #marker-container-${id}`);
+
+    // Si no tiene id directo, podemos buscarlo por el envoltorio interno de tu marcador personalizado:
+    const fallbackElement = badge ? badge.closest('.marker-container') : null;
+    const targetContainer = markerElement || fallbackElement;
+
+    if (targetContainer) {
+        if (stationData[id].isVIPActive) {
+            targetContainer.classList.add('vip-active'); // Enciende el pulso dorado
+        } else {
+            targetContainer.classList.remove('vip-active'); // Apaga el pulso dorado
+        }
     }
 }
 
