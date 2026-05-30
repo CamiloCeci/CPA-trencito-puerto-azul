@@ -49,6 +49,26 @@ let serviceStartTime = "07:00";
 let serviceEndTime = "22:00";
 // para validar los mensajes de cola
 let estadoColaUsuario = null;
+// Variable global para el marcador del trencito
+let trencitoMarker = null;
+
+// Definición del icono personalizado con un SVG de un tren/vagón
+const trenIconoPersonalizado = L.divIcon({
+    className: 'custom-train-marker', // Clase limpia para Leaflet
+    html: `
+        <div class="train-icon-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="3" width="16" height="14" rx="2"></rect>
+                <path d="M4 11h16"></path>
+                <path d="M12 3v8"></path>
+                <path d="M8 17l-2 4"></path>
+                <path d="M16 17l2 4"></path>
+            </svg>
+        </div>
+    `,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20] // Centrado exacto sobre la coordenada
+});
 
 // Diccionario de almacenamiento para las referencias de marcadores físicos de Leaflet
 let leafletMarkers = {};
@@ -87,7 +107,6 @@ async function fetchInitialData() {
 }
 
 // 3. Función para renderizar un Pin interactivo usando los estilos nativos de tu CSS
-// Variable de control para saber si la interfaz tiene la barra lateral (Admin y Operador)
 const tieneSidebar = document.getElementById('leftSidebar') !== null;
 
 function createStationMarker(id, data) {
@@ -845,4 +864,91 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Opcional: Si quieres re-verificar el horario cada 1 minuto de forma reactiva
     //setInterval(verificarHorarioServicio, 60000);
+
+    // Simulación de prueba a los 3 segundos de cargar la página
+    setTimeout(() => {
+        actualizarPosicionTren({
+            "id": 1,
+            "latitude": 10.6205,  // Usa una coordenada dentro de los límites permitidos de Puerto Azul
+            "longitude": -66.7415,
+            "speed": 13.0,
+            "timestamp": "2026-05-25T23:58:00.206789"
+        });
+    }, 3000);
 });
+
+// ==========================================================================
+// CONTROL DE GESTIÓN DE LOGOUT (Solo manejo de Ventana/Modal)
+// ==========================================================================
+/**
+ * Muestra u oculta el modal de confirmación de cierre de sesión
+ * @param {boolean} show - true para mostrar, false para ocultar
+ */
+function toggleLogoutModal(show) {
+    const modalOverlay = document.querySelector('.logout-modal');
+    const appScreen = document.querySelector('.app-screen'); // Contenedor principal
+    const mapArea = document.getElementById('map');          // El área del mapa
+
+    if (modalOverlay) {
+        if (show) {
+            modalOverlay.style.display = 'flex';
+            // Opcional: Si deseas desenfoque SOLO al abrir, se añadiría aquí
+        } else {
+            modalOverlay.style.display = 'none';
+
+            // Forzamos la remoción de cualquier clase de desenfoque residual en los contenedores
+            if (appScreen) appScreen.classList.remove('blur-effect');
+            if (mapArea) mapArea.classList.remove('blur-effect');
+
+            console.log('🔄 Regreso al mapa limpio y sin desenfoque.');
+        }
+    }
+}
+
+// Escuchador de eventos para inicializar el botón "Salir" del HTML
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.onclick = () => {
+            toggleLogoutModal(true);
+        };
+    }
+});
+
+// ==========================================================================
+// GESTOR COORDENADAS DEL GPS PARA EL TRENCITO
+// ==========================================================================
+/**
+/**
+ * Actualiza la posición del trencito en el mapa basándose en el JSON del backend.
+ * @param {Object} data - El objeto JSON recibido del servidor.
+ */
+function actualizarPosicionTren(data) {
+    // 1. Forzar conversión a flotante y asegurar que los nombres de los campos coincidan
+    const lat = parseFloat(data.latitude || data.lat);
+    const lng = parseFloat(data.longitude || data.lng);
+
+    // CORRECCIÓN: Validación limpia de números reales
+    if (isNaN(lat) || isNaN(lng)) {
+        console.warn("⚠️ Las coordenadas recibidas no son números válidos:", data);
+        return;
+    }
+
+    const nuevaCoordenada = [lat, lng];
+
+    // 2. Condicional de renderizado en Leaflet
+    if (!trencitoMarker) {
+        // Si no existe, se crea con el icono SVG personalizado
+        trencitoMarker = L.marker(nuevaCoordenada, { icon: trenIconoPersonalizado }).addTo(map);
+        console.log("🚂 Marcador del trencito creado por primera vez en:", nuevaCoordenada);
+    } else {
+        // Si ya existe, se mueve suavemente con la transición CSS
+        trencitoMarker.setLatLng(nuevaCoordenada);
+        console.log(`🚂 Posición del trencito actualizada: Lat ${lat}, Lng ${lng}`);
+    }
+
+    // OPCIONAL: Descomenta la línea de abajo si quieres que la cámara del mapa 
+    // siga automáticamente al tren cada vez que se mueva:
+    map.panTo(nuevaCoordenada);
+}
+

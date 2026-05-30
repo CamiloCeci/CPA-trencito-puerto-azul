@@ -8,10 +8,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="css/leaflet.css">
-    
     <link rel="stylesheet" href="css/stylemapa.css">
+
 </head>
 <body>
 
@@ -176,6 +175,28 @@
             </div>
         </div>
 
+        <!-- Parte del HTML añadido en mapaadmin.html -->
+        <button class="btn-logout">
+            <img class="logout-icon" src="assets/log-out-1-svgrepo-com.svg" alt="Salir">
+            <span>Salir</span>
+        </button>
+
+        <!-- Modal de confirmación -->
+        <div class="modal-overlay logout-modal" style="display: none;">
+            <div class="modal-card">
+                <h3>Confirmar cierre de sesión</h3>
+                <p class="modal-description">¿Estás seguro de que deseas cerrar sesión?</p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" type="button" onclick="toggleLogoutModal(false)">
+                        Cancelar
+                    </button>
+                    <a href="index.html" class="btn-modal-confirm-blue" onclick="sessionStorage.clear();" style="text-decoration: none; display: inline-block; text-align: center; line-height: normal;">
+                        Aceptar
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <footer class="app-footer">
             <div class="footer-left">
                 <img src="assets/puertoa-removebg-preview.png" alt="Logo Puerto Azul" class="footer-logo">
@@ -202,6 +223,5 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script src="js/services/mapa.js"></script>
-    <script src="js/logout.js"></script>
 </body>
 </html>
