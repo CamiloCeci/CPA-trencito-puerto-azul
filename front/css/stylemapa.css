@@ -871,3 +871,24 @@ html {
 .btn-logout svg {
     stroke: #0044cc !important;
 }
+
+/* ==========================================================================
+   ICONO DINÁMICO DEL TREN (LEAFLET)
+   ========================================================================== */
+.train-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background-color: #1F3FA6; /* Azul principal de tu paleta */
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(31, 63, 166, 0.5);
+    transition: transform 0.4s linear; /* Hace que el movimiento sea fluido */
+}
+
+.train-icon-wrapper svg {
+    width: 22px;
+    height: 22px;
+}
