@@ -94,7 +94,6 @@ async function fetchInitialData() {
 }
 
 // 3. Función para renderizar un Pin interactivo usando los estilos nativos de tu CSS
-// Variable de control para saber si la interfaz tiene la barra lateral (Admin y Operador)
 const tieneSidebar = document.getElementById('leftSidebar') !== null;
 
 function createStationMarker(id, data) {
@@ -838,4 +837,42 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Opcional: Si quieres re-verificar el horario cada 1 minuto de forma reactiva
     setInterval(verificarHorarioServicio, 60000);
+});
+
+// ==========================================================================
+// CONTROL DE GESTIÓN DE LOGOUT (Solo manejo de Ventana/Modal)
+// ==========================================================================
+/**
+ * Muestra u oculta el modal de confirmación de cierre de sesión
+ * @param {boolean} show - true para mostrar, false para ocultar
+ */
+function toggleLogoutModal(show) {
+    const modalOverlay = document.querySelector('.logout-modal');
+    const appScreen = document.querySelector('.app-screen'); // Contenedor principal
+    const mapArea = document.getElementById('map');          // El área del mapa
+
+    if (modalOverlay) {
+        if (show) {
+            modalOverlay.style.display = 'flex';
+            // Opcional: Si deseas desenfoque SOLO al abrir, se añadiría aquí
+        } else {
+            modalOverlay.style.display = 'none';
+            
+            // Forzamos la remoción de cualquier clase de desenfoque residual en los contenedores
+            if (appScreen) appScreen.classList.remove('blur-effect');
+            if (mapArea) mapArea.classList.remove('blur-effect');
+            
+            console.log('🔄 Regreso al mapa limpio y sin desenfoque.');
+        }
+    }
+}
+
+// Escuchador de eventos para inicializar el botón "Salir" del HTML
+document.addEventListener('DOMContentLoaded', () => {
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.onclick = () => {
+            toggleLogoutModal(true);
+        };
+    }
 });

@@ -95,7 +95,7 @@
         <div class="modal-overlay" id="cierreServicioModal" style="display: none; z-index: 9999;">
             <div class="modal-card" style="max-width: 400px; padding: 24px; text-align: center;">
                 <div class="status-icon-container" style="margin-bottom: 16px;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0044cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="12" cy="12" r="10"></circle>
                         <polyline points="12 6 12 12 16 14"></polyline>
                         <line x1="12" y1="16" x2="12.01" y2="16"></line>
@@ -105,7 +105,28 @@
                 <p class="modal-description-status" id="mensajeCierreTexto" style="margin-top: 12px; margin-bottom: 24px; color: #4b5563; font-size: 15px; line-height: 1.5;">
                     </p>
                 <div class="modal-actions-horizontal">
-                    <button class="btn-modal-confirm" style="width: 100%; background-color: #dc2626;" onclick="redirigirAInicioSesion()">Confirmar</button>
+                    <button class="btn-modal-confirm" style="width: 100%; background-color: #0044cc;" onclick="redirigirAInicioSesion()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <button class="btn-logout">
+            <img class="logout-icon" src="assets/log-out-1-svgrepo-com.svg" alt="Salir">
+            <span>Salir</span>
+        </button>
+
+        <!-- Modal de confirmación -->
+        <div class="modal-overlay logout-modal" style="display: none;">
+            <div class="modal-card">
+                <h3>Confirmar cierre de sesión</h3>
+                <p class="modal-description">¿Estás seguro de que deseas cerrar sesión?</p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" type="button" onclick="toggleLogoutModal(false)">
+                        Cancelar
+                    </button>
+                    <a href="index.html" class="btn-modal-confirm-blue" onclick="sessionStorage.clear();" style="text-decoration: none; display: inline-block; text-align: center; line-height: normal;">
+                        Aceptar
+                    </a>
                 </div>
             </div>
         </div>
