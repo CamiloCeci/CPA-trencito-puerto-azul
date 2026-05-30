@@ -1,4 +1,4 @@
-(function() {
+(function () {
     // Elementos del DOM
     const loginForm = document.getElementById('loginForm');
     const cedulaField = document.getElementById('cedulaInput');
@@ -32,7 +32,7 @@
         } else {
             toastEl.style.background = "rgba(31, 63, 166, 0.95)";
         }
-        
+
         toastEl.classList.add('show');
         setTimeout(() => {
             toastEl.classList.remove('show');
@@ -45,61 +45,96 @@
             showMessage("❌ Por favor, completa la cédula y la clave de acceso.", true);
             return false;
         }
-        
+
         const cleanCedula = cedula.trim().replace(/\s/g, '');
         if (!/^\d+$/.test(cleanCedula)) {
             showMessage("📇 La cédula debe contener solo números (ejemplo: 31707565)", true);
             return false;
         }
-        
+
         if (cleanCedula.length < 6) {
             showMessage("⚠️ La cédula debe tener al menos 6 dígitos.", true);
             return false;
         }
-        
+
         if (clave.trim().length < 4) {
             showMessage("🔐 La clave de acceso debe tener al menos 4 caracteres.", true);
             return false;
         }
-        
+
         return true;
     }
 
     // Manejar submit del formulario
-    function onSubmit(e) {
+    async function onSubmit(e) {
         if (e && typeof e.preventDefault === 'function') {
             e.preventDefault();
         }
         console.log('📝 Formulario enviado');
-        
+
         const cedulaVal = cedulaField.value;
         const claveVal = claveField.value;
 
         if (validateForm(cedulaVal, claveVal)) {
-            if (rememberCheck.checked) {
-                try {
-                    localStorage.setItem('puertoAzul_rememberMe', 'true');
-                    localStorage.setItem('puertoAzul_lastUser', cedulaVal.substring(0,4) + '****');
-                    console.log('💾 Sesión guardada en localStorage');
-                } catch(err) {
-                    console.error('Error al guardar en localStorage:', err);
-                }
-            } else {
-                localStorage.removeItem('puertoAzul_rememberMe');
-                localStorage.removeItem('puertoAzul_lastUser');
-            }
+            const btn = document.getElementById('submitBtn');
+            // if (btn) btn.disabled = true;
 
             showMessage("🚂✨ ¡Bienvenido! Conectando al sistema del Trencito Puerto Azul.", false);
-            
-            const btn = document.getElementById('submitBtn');
-            if (btn) {
-                btn.disabled = true;
+
+            try {
+                const URL = 'http://localhost:8080/api/v1/users/login/';
+                const payload = {
+                    body: {
+                        cedula: cedulaVal,
+                        clave: claveVal
+                    }
+                };
+
+                const response = await fetch(URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Credenciales inválidas o error en el servidor');
+                }
+
+                const usuario = await response.json();
+                console.log('Login exitoso:', usuario);
+                sessionStorage.setItem('usuarioLogueado', JSON.stringify(usuario));
+
+                if (rememberCheck.checked) {
+                    try {
+                        localStorage.setItem('puertoAzul_rememberMe', 'true');
+                        localStorage.setItem('puertoAzul_lastUser', cedulaVal.substring(0, 4) + '****');
+                        console.log('💾 Sesión guardada en localStorage');
+                    } catch (err) {
+                        console.error('Error al guardar en localStorage:', err);
+                    }
+                } else {
+                    localStorage.removeItem('puertoAzul_rememberMe');
+                    localStorage.removeItem('puertoAzul_lastUser');
+                }
+
+                console.log(`✅ Acceso exitoso con cédula: ${cedulaVal}`);
+
                 setTimeout(() => {
-                    btn.disabled = false;
-                }, 2000);
+                    if (usuario.rol === 'ADMINISTRADOR') {
+                        window.location.href = 'mapaadmin.html';
+                    } else if (usuario.rol === 'OPERADOR') {
+                        window.location.href = 'mapaoperador.html';
+                    } else if (usuario.rol === 'VIP') {
+                        window.location.href = 'mapavip.html';
+                    } else {
+                        window.location.href = 'mapasocio.html';
+                    }
+                }, 1000);
+
+            } catch (error) {
+                showMessage("❌ Error: " + error.message, true);
+                // if (btn) btn.disabled = false;
             }
-            
-            console.log(`✅ Acceso exitoso con cédula: ${cedulaVal}`);
         }
     }
 
@@ -113,7 +148,7 @@
             }, 500);
             console.log('🔁 Preferencia de sesión recordada cargada');
         }
-    } catch(e) {
+    } catch (e) {
         console.error('Error al leer localStorage:', e);
     }
 
@@ -138,7 +173,7 @@
             onSubmit(e);
         }
     };
-    
+
     document.addEventListener('keypress', handleEnter);
     console.log('✅ JavaScript del Trencito Puerto Azul funcionando correctamente');
 })();

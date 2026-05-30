@@ -22,7 +22,8 @@ public class CoordenadaGpsController {
 
     @GetMapping("/")
     public ResponseEntity<CoordenadaGps> getCoordenadaGps() {
-        return gpsCoordenadasRepository.findById((long) 1).map(coord -> ResponseEntity.ok().body(coord)).orElse(ResponseEntity.notFound().build());
+        return gpsCoordenadasRepository.findById((long) 1).map(coord -> ResponseEntity.ok().body(coord))
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{latitude}/{longitude}/")
@@ -36,7 +37,8 @@ public class CoordenadaGpsController {
     }
 
     @GetMapping("/{latitude}/{longitude}/{speed}/")
-    public ResponseEntity<?> updateCoordenadaGps(@PathVariable double latitude, @PathVariable double longitude, @PathVariable double speed) {
+    public ResponseEntity<?> updateCoordenadaGps(@PathVariable double latitude, @PathVariable double longitude,
+            @PathVariable double speed) {
         CoordenadaGps coords = gpsService.updateCoordenadas(latitude, longitude, speed);
         if (coords != null) {
             return ResponseEntity.ok().body(coords);
@@ -46,7 +48,8 @@ public class CoordenadaGpsController {
     }
 
     @GetMapping("/create/{latitude}/{longitude}/{speed}/")
-    public ResponseEntity<?> createCoordenadaGps(@PathVariable double latitude, @PathVariable double longitude, @PathVariable double speed) {
+    public ResponseEntity<?> createCoordenadaGps(@PathVariable double latitude, @PathVariable double longitude,
+            @PathVariable double speed) {
         CoordenadaGps coords = gpsService.createCoordenadaas(latitude, longitude, speed);
         if (coords != null) {
             return ResponseEntity.ok().body(coords);

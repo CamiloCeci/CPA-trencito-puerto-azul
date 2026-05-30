@@ -1,13 +1,20 @@
 package com.ucab.grupo_113_ing_software.tpa_server.service;
 
+import com.ucab.grupo_113_ing_software.tpa_server.dto.PuestoPayload;
 import com.ucab.grupo_113_ing_software.tpa_server.model.Tren;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TrenService {
-    private final Tren tren = new Tren(0);
+    private final Tren tren = new Tren(20);
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
-    public TrenService() {}
+    @Autowired
+    public TrenService(SimpMessagingTemplate simpMessagingTemplate) {
+        this.simpMessagingTemplate = simpMessagingTemplate;
+    }
 
     public Tren getTren() {
         return tren;
@@ -18,18 +25,24 @@ public class TrenService {
     }
 
     public boolean setPuestosLlenos(int puestosLlenos) {
-        return tren.setPuestosLlenos(puestosLlenos);
+        boolean result = tren.setPuestosLlenos(puestosLlenos);
+        simpMessagingTemplate.convertAndSend("/topic/tren", new PuestoPayload(this.getPuestosLlenos()));
+        return result;
     }
 
     public int getPuestosLlenos() {
-        return tren.getPuestosLlenos();
+        return tren.getPuestosLibres();
     }
 
     public boolean aumentarPuestosLlenos() {
-        return tren.aumentarPuestosLlenos();
+        boolean result = tren.aumentarPuestosLlenos();
+        simpMessagingTemplate.convertAndSend("/topic/tren", new PuestoPayload(this.getPuestosLlenos()));
+        return result;
     }
 
     public boolean disminuirPuestosLlenos() {
-        return tren.disminuirPuestosLlenos();
+        boolean result = tren.disminuirPuestosLlenos();
+        simpMessagingTemplate.convertAndSend("/topic/tren", new PuestoPayload(this.getPuestosLlenos()));
+        return result;
     }
 }

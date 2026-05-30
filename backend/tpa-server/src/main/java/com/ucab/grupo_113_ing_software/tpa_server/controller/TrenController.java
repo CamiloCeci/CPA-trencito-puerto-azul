@@ -1,10 +1,7 @@
 package com.ucab.grupo_113_ing_software.tpa_server.controller;
 
 import com.ucab.grupo_113_ing_software.tpa_server.dto.PuestoPayload;
-import com.ucab.grupo_113_ing_software.tpa_server.model.Estacion;
-import com.ucab.grupo_113_ing_software.tpa_server.model.Tren;
 import com.ucab.grupo_113_ing_software.tpa_server.service.TrenService;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,11 +10,12 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/tren")
+@CrossOrigin(origins = "*")
 public class TrenController {
     private TrenService trenService;
 
-    public TrenController() {
-        trenService = new TrenService();
+    public TrenController(TrenService trenService) {
+        this.trenService = trenService;
     }
 
     @GetMapping("/")
@@ -39,8 +37,9 @@ public class TrenController {
     @GetMapping("/disminuir/")
     public ResponseEntity<?> disminuirPuestosLlenos() {
         boolean exito = trenService.disminuirPuestosLlenos();
-        Map<String, Object> response = makeResponse(trenService.getPuestosLlenos(), exito ? "Puestos disminuidos en uno."
-                : "Los puestos ocupados en el tren no puede ser negativo.");
+        Map<String, Object> response = makeResponse(trenService.getPuestosLlenos(),
+                exito ? "Puestos disminuidos en uno."
+                        : "Los puestos ocupados en el tren no puede ser negativo.");
         if (exito)
             return ResponseEntity.ok(response);
         else
@@ -52,8 +51,9 @@ public class TrenController {
     @PatchMapping("/")
     public ResponseEntity<?> updatePuestosLlenos(@RequestBody PuestoPayload puestos) {
         boolean exito = trenService.setPuestosLlenos(puestos.puestos());
-        Map<String, Object> response = makeResponse(trenService.getPuestosLlenos(), exito ? "Puestos actualizados exitosamente."
-                : "Los puestos ocupados en el tren no puede ser un número menor a cero o mayor que veinte.");
+        Map<String, Object> response = makeResponse(trenService.getPuestosLlenos(),
+                exito ? "Puestos actualizados exitosamente."
+                        : "Los puestos ocupados en el tren no puede ser un número menor a cero o mayor que veinte.");
         if (exito)
             return ResponseEntity.ok(response);
         else

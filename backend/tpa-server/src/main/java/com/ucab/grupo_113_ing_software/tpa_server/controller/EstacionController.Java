@@ -12,6 +12,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/estaciones")
+@CrossOrigin(origins = "*")
 public class EstacionController {
     private final EstacionService estacionService;
 

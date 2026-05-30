@@ -3,17 +3,21 @@ package com.ucab.grupo_113_ing_software.tpa_server.service;
 import com.ucab.grupo_113_ing_software.tpa_server.model.Estacion;
 import com.ucab.grupo_113_ing_software.tpa_server.repository.EstacionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import com.ucab.grupo_113_ing_software.tpa_server.dto.EstacionUpdateDTO;
 
 import java.util.List;
 
 @Service
 public class EstacionService {
     private final EstacionRepository estacionRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public EstacionService(EstacionRepository estacionRepository) {
+    public EstacionService(EstacionRepository estacionRepository, SimpMessagingTemplate messagingTemplate) {
         this.estacionRepository = estacionRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public Estacion crearEstacion(Estacion estacion) {
@@ -40,7 +44,9 @@ public class EstacionService {
         Estacion estacion = estacionRepository.findById(id).orElse(null);
         if (estacion != null) {
             estacion.subirContador();
-            return estacionRepository.save(estacion);
+            Estacion saved = estacionRepository.save(estacion);
+            messagingTemplate.convertAndSend("/topic/estaciones", new EstacionUpdateDTO(saved.getId(), saved.getContador()));
+            return saved;
         }
         return null;
     }
@@ -49,7 +55,9 @@ public class EstacionService {
         Estacion estacion = estacionRepository.findById(id).orElse(null);
         if (estacion != null) {
             estacion.bajarContador();
-            return estacionRepository.save(estacion);
+            Estacion saved = estacionRepository.save(estacion);
+            messagingTemplate.convertAndSend("/topic/estaciones", new EstacionUpdateDTO(saved.getId(), saved.getContador()));
+            return saved;
         }
         return null;
     }
