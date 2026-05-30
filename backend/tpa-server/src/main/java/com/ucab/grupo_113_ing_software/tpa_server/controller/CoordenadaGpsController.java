@@ -13,9 +13,9 @@ public class CoordenadaGpsController {
     private final GpsCoordenadasRepository gpsCoordenadasRepository;
     private final GpsService gpsService;
 
-    public CoordenadaGpsController(GpsCoordenadasRepository gpsCoordenadasRepository) {
+    public CoordenadaGpsController(GpsService gpsService, GpsCoordenadasRepository gpsCoordenadasRepository) {
         this.gpsCoordenadasRepository = gpsCoordenadasRepository;
-        this.gpsService = new GpsService(gpsCoordenadasRepository);
+        this.gpsService = gpsService;
     }
 
     // No se le pasa JSON

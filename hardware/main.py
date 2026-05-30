@@ -1,4 +1,4 @@
-from CoordenadasGps import *
+from classes.CoordenadasGps import CoordenadasGps
 
 gps = CoordenadasGps()
 try:

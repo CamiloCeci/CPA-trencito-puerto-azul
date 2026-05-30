@@ -80,14 +80,7 @@ async function fetchInitialData() {
             if (sc) sc.innerText = currentAvailableSeats;
         }
 
-        const dispRes = await fetch('http://localhost:8080/api/v1/disponibilidad/');
-        if (dispRes.ok) {
-            const data = await dispRes.json();
-            if (data && data.horaDesde && data.horaHasta) {
-                serviceStartTime = data.horaDesde;
-                serviceEndTime = data.horaHasta;
-            }
-        }
+
     } catch (err) {
         console.error('Error al inicializar datos:', err);
     }
@@ -182,9 +175,6 @@ function connectWebSocket() {
 }
 
 connectWebSocket();
-
-// Fetcheamos datos al iniciar
-fetchInitialData();
 
 // 4. Animación del Trencito simulando un recorrido en tiempo real
 const trainIcon = L.divIcon({
@@ -805,7 +795,22 @@ function tiempoEnMinutos(horaString) {
 }
 
 // Función principal que valida si el servicio está activo en el momento actual
-function verificarHorarioServicio() {
+async function verificarHorarioServicio() {
+    try {
+        const dispRes = await fetch('http://localhost:8080/api/v1/disponibilidad/');
+        if (dispRes.ok) {
+            const data = await dispRes.json();
+            if (data && data.desde && data.hasta) {
+                serviceStartTime = data.desde;
+                serviceEndTime = data.hasta;
+            }
+        }
+    } catch (error) {
+        console.error('Error al obtener la disponibilidad:', error);
+        serviceStartTime = "07:00";
+        serviceEndTime = "22:00";
+    }
+
     const ahora = new Date();
     // Formateamos la hora actual en formato HH:MM (usando formato de 24 horas)
     const horaActualStr = `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
@@ -833,9 +838,11 @@ function redirigirAInicioSesion() {
 }
 
 // EJECUCIÓN AUTOMÁTICA: Valida el horario inmediatamente al cargar la pantalla
-window.addEventListener('DOMContentLoaded', () => {
-    verificarHorarioServicio();
+window.addEventListener('DOMContentLoaded', async () => {
+    await fetchInitialData();
+
+    await verificarHorarioServicio();
 
     // Opcional: Si quieres re-verificar el horario cada 1 minuto de forma reactiva
-    setInterval(verificarHorarioServicio, 60000);
+    //setInterval(verificarHorarioServicio, 60000);
 });

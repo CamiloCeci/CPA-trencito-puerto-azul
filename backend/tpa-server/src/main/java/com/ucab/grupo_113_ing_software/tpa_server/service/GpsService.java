@@ -4,19 +4,21 @@ import com.ucab.grupo_113_ing_software.tpa_server.model.CoordenadaGps;
 import com.ucab.grupo_113_ing_software.tpa_server.repository.GpsCoordenadasRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.function.ToLongFunction;
 
 @Service
 public class GpsService {
     private final GpsCoordenadasRepository gpsCoordenadasRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Autowired
-    public GpsService(GpsCoordenadasRepository gpsCoordenadasRepository) {
+    public GpsService(GpsCoordenadasRepository gpsCoordenadasRepository, SimpMessagingTemplate simpMessagingTemplate) {
         this.gpsCoordenadasRepository = gpsCoordenadasRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
     public CoordenadaGps getCoordenadas() {
@@ -36,6 +38,7 @@ public class GpsService {
             coords.get().setLatitude(latitude);
             coords.get().setLongitude(longitude);
             gpsCoordenadasRepository.save(coords.get());
+            simpMessagingTemplate.convertAndSend("/topic/trencito/posicion", coords.get());
             return coords.get();
         }
         return null;
@@ -48,6 +51,7 @@ public class GpsService {
             coords.get().setLongitude(longitude);
             coords.get().setSpeed(speed);
             gpsCoordenadasRepository.save(coords.get());
+            simpMessagingTemplate.convertAndSend("/topic/trencito/posicion", coords.get());
             return coords.get();
         }
         return null;

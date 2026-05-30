@@ -2,15 +2,15 @@ import machine
 import time
 
 class CoordenadasGps:
-    TX_PIN = 11
-    RX_PIN = 10
-    PWRKEY_PIN = 18
-    POWERON_PIN = 12
-    RESET_PIN = 17
-    DTR_PIN = 9
-    BAUD = 115200
 
     def __init__(self, uart_id=1, timeout=100):
+        self.TX_PIN = 11
+        self.RX_PIN = 10
+        self.PWRKEY_PIN = 18
+        self.POWERON_PIN = 12
+        self.RESET_PIN = 17
+        self.DTR_PIN = 9
+        self.BAUD = 115200
         self.uart = machine.UART(uart_id, baudrate=self.BAUD, tx=self.TX_PIN, rx=self.RX_PIN, timeout=timeout)
         self.log("Inicializando objeto GPS")
 
@@ -61,8 +61,7 @@ class CoordenadasGps:
 
         text = "".join(chunks)
         if saw_data:
-            compact = text.strip().replace("
-", " | ")
+            compact = text.strip().replace("\r\n", " | ")
             self.log("AT < %s" % compact)
         else:
             self.log("AT < (sin respuesta)")
@@ -71,8 +70,7 @@ class CoordenadasGps:
     def send_at(self, cmd, wait_ms=1200):
         self._flush_uart()
         self.log("AT > %s" % cmd)
-        self.uart.write(cmd + "
-")
+        self.uart.write(cmd + "\r\n")
         return self._read_uart(wait_ms)
 
     def boot_factory_like(self):
@@ -213,5 +211,4 @@ if __name__ == "__main__":
     try:
         gps.run_auto_cycle()
     except KeyboardInterrupt:
-        print("
-Proceso detenido.")
+        print("Proceso detenido.")
