@@ -22,9 +22,13 @@ public class CoordenadaGpsController {
 
     @GetMapping("/")
     public ResponseEntity<CoordenadaGps> getCoordenadaGps() {
-        return gpsCoordenadasRepository.findById((long) 1).map(coord -> ResponseEntity.ok().body(coord))
-                .orElse(ResponseEntity.notFound().build());
+        CoordenadaGps coord = gpsService.getCoordenadas();
+        if  (coord != null)
+            return ResponseEntity.ok().body(coord);
+        else
+            return ResponseEntity.notFound().build();
     }
+
 
     @GetMapping("/{latitude}/{longitude}/")
     public ResponseEntity<?> updateCoordenadaGps(@PathVariable double latitude, @PathVariable double longitude) {
