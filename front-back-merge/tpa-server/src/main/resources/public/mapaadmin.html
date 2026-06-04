@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa - Trencito Puerto Azul</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="stylesheet" href="css/stylemapa.css">
+
+</head>
+<body>
+
+    <div class="app-screen">
+        <div class="left-sidebar" id="leftSidebar">
+            <button class="toggle-btn" onclick="toggleSidebar()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+            </button>
+            <div class="sidebar-content">
+                <h2>Gestiones</h2>
+                <button class="btn-sidebar" onclick="openServiceModal()">Modificar horario de servicio</button>
+                <button class="btn-sidebar" onclick="openPuestosModal()">Modificar puestos del tren</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); openCreateStationModal();">Crear estación</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); openDeleteStationModal();">Eliminar estación</button>
+            </div>
+        </div>
+
+        <div class="map-area" id="map"></div>
+
+        <div class="top-info-bar">
+            <div class="info-card">
+                <span class="info-label">Puestos Libres:</span>
+                <span class="info-value value-blue" id="seatsCounter">9</span>
+            </div>
+        </div>
+
+        <button class="btn-status-circle" onclick="openStatusModal()" title="Consultar disponibilidad">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </button>
+
+        <div class="modal-overlay" id="statusModal" style="display: none;">
+            <div class="modal-card">
+                <div class="status-icon-container">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0044cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <h3>Disponibilidad del Servicio</h3>
+                <p class="modal-description-status" id="statusModalMessage">
+                    El trencito estará prestando su servicio...
+                </p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-confirm" onclick="toggleModal('statusModal', false)">Volver al mapa</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="serviceModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Modificar Horario de Servicio</h3>
+                <p class="modal-description">Defina el rango de tiempo en el que opera el trencito:</p>
+                
+                <div class="time-inputs-container">
+                    <div class="time-field">
+                        <label for="serviceStartInput">Inicio</label>
+                        <input type="text" id="serviceStartInput" placeholder="07:00" maxlength="5" oninput="validateTimeInput(this)">
+                    </div>
+                    <div class="time-field">
+                        <label for="serviceEndInput">Fin</label>
+                        <input type="text" id="serviceEndInput" placeholder="22:00" maxlength="5" oninput="validateTimeInput(this)">
+                    </div>
+                </div>
+                
+                <div id="serviceErrorMsg" class="error-text-modal" style="display: none;">El rango de horario es inválido</div>
+                
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('serviceModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmServiceHours()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="puestosModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Modificar Puestos</h3>
+                <p class="modal-description">Ajuste la cantidad de asientos libres disponibles actualmente en el tren.</p>
+                
+                <div class="input-container-modal">
+                    <input type="text" id="puestosTempInput" class="puestos-input-edit" oninput="validateSeatsInput(this)" style="text-align: center; font-size: 24px; font-weight: 700; width: 150px; margin: 0 auto 10px auto; border-radius: 24px; padding: 12px; display: block;">
+                </div>
+                
+                <p class="max-capacity-text" style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 20px; text-align: center;">
+                    Cantidad máxima de puestos: 20
+                </p>
+
+                <div class="puestos-btn-container">
+                    <button class="btn-adjust-blue" onclick="alterTempSeats(-1)">-</button>
+                    <button class="btn-adjust-blue" onclick="alterTempSeats(1)">+</button>
+                </div>
+                
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="handleCancelSeats()">Cancelar</button>
+                    <button class="btn-modal-confirm" id="btnConfirmSeats" onclick="confirmSeatsChanges()" disabled>Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="puestosConfirmExitModal" style="display: none; z-index: 2000;">
+            <div class="modal-card" style="border: 2px solid #ef4444; max-width: 350px;">
+                <h3 style="color: #ef4444;">¿Salir sin guardar?</h3>
+                <p class="modal-description" style="margin-bottom: 24px;">Hay cambios sin guardar. ¿Estás seguro de que quieres salir sin guardar los cambios?</p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('puestosConfirmExitModal', false)">Volver</button>
+                    <button class="btn-modal-delete" onclick="forceExitSeats()" style="background-color: #ef4444;">Salir</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="stationModal" style="display: none;">
+            <div class="modal-card" style="max-width: 420px; padding: 24px;">
+                <h3 id="modalStationName" style="margin-bottom: 4px;">Nombre Estación</h3>
+                
+                <div class="station-status-badge" style="background: #f3f4f6; padding: 12px; border-radius: 16px; margin-bottom: 20px;">
+                    <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">En cola actualmente:</span>
+                    <strong id="modalWaitingCount" style="font-size: 22px; color: #0044cc; display: block; margin-top: 4px;">0 personas</strong>
+                </div>
+
+                <div class="station-actions-vertical" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
+                    <button class="btn-station-action action-reset" onclick="resetStationQueue()">
+                        🔄 Reiniciar la cola
+                    </button>
+                    <button class="btn-station-action action-time" onclick="showEstimatedTime()">
+                        ⏱️ Ver tiempo estimado de llegada
+                    </button>
+                </div>
+                
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" style="border-radius: 24px; padding: 14px; width: 100%;" onclick="toggleModal('stationModal', false)">Salir</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="createStationModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Crear Nueva Estación</h3>
+                <p class="modal-description">Asigne un nombre a la estación. Luego de confirmar, haga clic en el mapa para ubicarla.</p>
+                <div class="input-container-modal">
+                    <input type="text" id="newStationNameInput" placeholder="Ej: Estación Piscina" autocomplete="off">
+                </div>
+                <div id="createStationErrorMsg" class="error-text-modal" style="display: none;">El nombre ya existe o es inválido</div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('createStationModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="startCreateStation()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="deleteStationModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Eliminar Estación</h3>
+                <p class="modal-description">Seleccione la estación que desea remover permanentemente del sistema:</p>
+                <div class="station-list-scrollable" id="deleteStationList">
+                    </div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="toggleModal('deleteStationModal', false)">Cancelar</button>
+                    <button class="btn-modal-delete" onclick="confirmDeleteStation()">Eliminar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parte del HTML añadido en mapaadmin.html -->
+        <button class="btn-logout">
+            <img class="logout-icon" src="assets/log-out-1-svgrepo-com.svg" alt="Salir">
+            <span>Salir</span>
+        </button>
+
+        <!-- Modal de confirmación -->
+        <div class="modal-overlay logout-modal" style="display: none;">
+            <div class="modal-card">
+                <h3>Confirmar cierre de sesión</h3>
+                <p class="modal-description">¿Estás seguro de que deseas cerrar sesión?</p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" type="button" onclick="toggleLogoutModal(false)">
+                        Cancelar
+                    </button>
+                    <a href="index.html" class="btn-modal-confirm-blue" onclick="sessionStorage.clear();" style="text-decoration: none; display: inline-block; text-align: center; line-height: normal;">
+                        Aceptar
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            <div class="footer-left">
+                <img src="assets/puertoa-removebg-preview.png" alt="Logo Puerto Azul" class="footer-logo">
+            </div>
+            
+            <div class="footer-center">
+                <div class="copyright-text">
+                    © 2026 <strong>Club Puerto Azul</strong>. Todos los derechos reservados.
+                </div>
+                <div class="footer-legal">
+                    Trencito Puerto Azul · Sistema oficial de seguimiento
+                </div>
+            </div>
+            
+            <div class="footer-right">
+                <div class="footer-legal" style="color: #9cb2ca;">
+                    Desarrollado con <a href="https://leafletjs.com" target="_blank" rel="noopener noreferrer" class="footer-link">Leaflet</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    
+    <script type="module" src="js/controllers/MapController.js"></script>
+    <script type="module" src="js/controllers/QueueController.js"></script>
+    <script type="module" src="js/controllers/StationController.js"></script>
+    <script type="module" src="js/controllers/ScheduleController.js"></script>
+    <script type="module" src="js/controllers/SeatsController.js"></script>
+    <script type="module" src="js/controllers/LogoutController.js"></script>
+</body>
+</html>
