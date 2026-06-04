@@ -7,7 +7,7 @@ function verificarSesion() {
     if (!datosGuardados) {
         // Si no hay nadie en la memoria, directo al login
         alert("Acceso denegado. Por favor, inicia sesión.");
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
         return;
     }
 
@@ -24,6 +24,6 @@ const btnSalir = document.getElementById('btnSalir');
 if (btnSalir) {
     btnSalir.addEventListener('click', () => {
         sessionStorage.removeItem('usuarioLogueado');
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
     });
 }

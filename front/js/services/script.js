@@ -121,13 +121,13 @@
 
                 setTimeout(() => {
                     if (usuario.rol === 'ADMINISTRADOR') {
-                        window.location.href = 'mapaadmin.html';
+                        window.location.href = 'pages/mapaadmin.html';
                     } else if (usuario.rol === 'OPERADOR') {
-                        window.location.href = 'mapaoperador.html';
+                        window.location.href = 'pages/mapaoperador.html';
                     } else if (usuario.rol === 'VIP') {
-                        window.location.href = 'mapavip.html';
+                        window.location.href = 'pages/mapavip.html';
                     } else {
-                        window.location.href = 'mapasocio.html';
+                        window.location.href = 'pages/mapasocio.html';
                     }
                 }, 1000);
 

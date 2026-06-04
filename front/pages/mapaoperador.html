@@ -10,14 +10,27 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="stylesheet" href="../css/leaflet.css">
 
-    <link rel="stylesheet" href="css/stylemapa.css">
+    <link rel="stylesheet" href="../css/stylemapa.css">
 </head>
 
 <body>
 
     <div class="app-screen">
+        <div class="left-sidebar" id="leftSidebar">
+            <button class="toggle-btn" onclick="toggleSidebar()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+            <div class="sidebar-content">
+                <h2>Gestiones</h2>
+                <button class="btn-sidebar" onclick="openPuestosModal()">Modificar puestos del tren</button>
+            </div>
+        </div>
 
         <div class="map-area" id="map"></div>
 
@@ -56,18 +69,64 @@
             </div>
         </div>
 
+        <div class="modal-overlay" id="puestosModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Modificar Puestos</h3>
+                <p class="modal-description">Ajuste la cantidad de asientos libres disponibles actualmente en el tren.
+                </p>
+
+                <div class="input-container-modal">
+                    <input type="text" id="puestosTempInput" class="puestos-input-edit"
+                        oninput="validateSeatsInput(this)"
+                        style="text-align: center; font-size: 24px; font-weight: 700; width: 150px; margin: 0 auto 10px auto; border-radius: 24px; padding: 12px; display: block;">
+                </div>
+
+                <p class="max-capacity-text"
+                    style="font-size: 13px; color: var(--text-muted); font-weight: 600; margin-bottom: 20px; text-align: center;">
+                    Cantidad máxima de puestos: 20
+                </p>
+
+                <div class="puestos-btn-container">
+                    <button class="btn-adjust-blue" onclick="alterTempSeats(-1)">-</button>
+                    <button class="btn-adjust-blue" onclick="alterTempSeats(1)">+</button>
+                </div>
+
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="handleCancelSeats()">Cancelar</button>
+                    <button class="btn-modal-confirm" id="btnConfirmSeats" onclick="confirmSeatsChanges()"
+                        disabled>Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="puestosConfirmExitModal" style="display: none; z-index: 2000;">
+            <div class="modal-card" style="border: 2px solid #ef4444; max-width: 350px;">
+                <h3 style="color: #ef4444;">¿Salir sin guardar?</h3>
+                <p class="modal-description" style="margin-bottom: 24px;">Hay cambios sin guardar. ¿Estás seguro de que
+                    quieres salir sin guardar los cambios?</p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel"
+                        onclick="toggleModal('puestosConfirmExitModal', false)">Volver</button>
+                    <button class="btn-modal-delete" onclick="forceExitSeats()"
+                        style="background-color: #ef4444;">Salir</button>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-overlay" id="stationModal" style="display: none;">
             <div class="modal-card" style="max-width: 420px; padding: 24px;">
                 <h3 id="modalStationName" style="margin-bottom: 4px;">Nombre Estación</h3>
 
+                <div class="station-status-badge"
+                    style="background: #f3f4f6; padding: 12px; border-radius: 16px; margin-bottom: 20px;">
+                    <span style="font-size: 14px; color: var(--text-muted); font-weight: 600;">En cola
+                        actualmente:</span>
+                    <strong id="modalWaitingCount"
+                        style="font-size: 22px; color: #0044cc; display: block; margin-top: 4px;">0 personas</strong>
+                </div>
+
                 <div class="station-actions-vertical"
                     style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px;">
-                    <button class="btn-station-action action-add" onclick="unirseAColaVirtual()">
-                        ➕ Añadirse a la cola
-                    </button>
-                    <button class="btn-station-action action-remove" onclick="eliminarseDeColaVirtual()">
-                        ➖ Eliminarse de la cola
-                    </button>
                     <button class="btn-station-action action-time" onclick="showEstimatedTime()">
                         ⏱️ Ver tiempo estimado de llegada
                     </button>
@@ -76,24 +135,6 @@
                 <div class="modal-actions-horizontal">
                     <button class="btn-modal-cancel" style="border-radius: 24px; padding: 14px; width: 100%;"
                         onclick="toggleModal('stationModal', false)">Salir</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="modal-overlay" id="mensajeColaModal" style="display: none;">
-            <div class="modal-card" style="max-width: 400px; padding: 24px; text-align: center;">
-                <div class="status-icon-container" style="margin-bottom: 16px;">
-                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0044cc" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                </div>
-                <h3>Cola Virtual</h3>
-                <p class="modal-description-status" id="mensajeColaTexto"
-                    style="margin-top: 12px; margin-bottom: 24px; color: #4b5563; font-size: 15px; line-height: 1.5;">
-                </p>
-                <div class="modal-actions-horizontal">
-                    <button class="btn-modal-confirm" style="width: 100%;" onclick="presionarOKCola()">OK</button>
                 </div>
             </div>
         </div>
@@ -120,7 +161,7 @@
         </div>
 
         <button class="btn-logout">
-            <img class="logout-icon" src="assets/log-out-1-svgrepo-com.svg" alt="Salir">
+            <img class="logout-icon" src="../assets/log-out-1-svgrepo-com.svg" alt="Salir">
             <span>Salir</span>
         </button>
 
@@ -133,7 +174,7 @@
                     <button class="btn-modal-cancel" type="button" onclick="toggleLogoutModal(false)">
                         Cancelar
                     </button>
-                    <a href="index.html" class="btn-modal-confirm-blue" onclick="sessionStorage.clear();"
+                    <a href="../index.html" class="btn-modal-confirm-blue" onclick="sessionStorage.clear();"
                         style="text-decoration: none; display: inline-block; text-align: center; line-height: normal;">
                         Aceptar
                     </a>
@@ -143,7 +184,7 @@
 
         <footer class="app-footer">
             <div class="footer-left">
-                <img src="assets/puertoa-removebg-preview.png" alt="Logo Puerto Azul" class="footer-logo">
+                <img src="../assets/puertoa-removebg-preview.png" alt="Logo Puerto Azul" class="footer-logo">
             </div>
 
             <div class="footer-center">
@@ -169,9 +210,10 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     
-    <script type="module" src="js/controllers/MapController.js"></script>
-    <script type="module" src="js/controllers/QueueController.js"></script>
-    <script type="module" src="js/controllers/ScheduleController.js"></script>
-    <script type="module" src="js/controllers/LogoutController.js"></script>
+    <script type="module" src="../js/controllers/MapController.js"></script>
+    <script type="module" src="../js/controllers/QueueController.js"></script>
+    <script type="module" src="../js/controllers/ScheduleController.js"></script>
+    <script type="module" src="../js/controllers/SeatsController.js"></script>
+    <script type="module" src="../js/controllers/LogoutController.js"></script>
 </body>
 </html>

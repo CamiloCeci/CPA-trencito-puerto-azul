@@ -28,7 +28,7 @@ export const LogoutController = {
 
     redirigirAInicioSesion() {
         sessionStorage.clear();
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
     }
 
 };

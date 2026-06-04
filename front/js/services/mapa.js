@@ -648,7 +648,7 @@ async function unirseAColaVirtual() {
     const usuarioStr = sessionStorage.getItem('usuarioLogueado');
     if (!usuarioStr) {
         alert("Debe iniciar sesión primero");
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
         return;
     }
     const usuario = JSON.parse(usuarioStr);
@@ -692,7 +692,7 @@ async function unirseAColaPrioridad() {
     const usuarioStr = sessionStorage.getItem('usuarioLogueado');
     if (!usuarioStr) {
         alert("Debe iniciar sesión primero");
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
         return;
     }
     const usuario = JSON.parse(usuarioStr);
@@ -738,7 +738,7 @@ async function eliminarseDeColaVirtual() {
     const usuarioStr = sessionStorage.getItem('usuarioLogueado');
     if (!usuarioStr) {
         alert("Debe iniciar sesión primero");
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
         return;
     }
     const usuario = JSON.parse(usuarioStr);
@@ -919,7 +919,7 @@ async function verificarHorarioServicio() {
 
 // Función que ejecuta el botón "Confirmar" del modal para sacar al usuario
 function redirigirAInicioSesion() {
-    window.location.href = 'index.html';
+    window.location.href = '../index.html';
 }
 
 // EJECUCIÓN AUTOMÁTICA: Valida el horario inmediatamente al cargar la pantalla

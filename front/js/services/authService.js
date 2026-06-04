@@ -28,7 +28,7 @@ export const AuthService = {
 
     logout() {
         sessionStorage.clear();
-        window.location.href = 'index.html';
+        window.location.href = '../index.html';
     },
 
     getUsuarioLogueado() {

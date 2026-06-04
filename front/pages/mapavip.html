@@ -9,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="css/leaflet.css">
+    <link rel="stylesheet" href="../css/leaflet.css">
     
-    <link rel="stylesheet" href="css/stylemapa.css">
+    <link rel="stylesheet" href="../css/stylemapa.css">
 </head>
 <body>
 
@@ -111,7 +111,7 @@
         </div>
 
         <button class="btn-logout">
-            <img class="logout-icon" src="assets/log-out-1-svgrepo-com.svg" alt="Salir">
+            <img class="logout-icon" src="../assets/log-out-1-svgrepo-com.svg" alt="Salir">
             <span>Salir</span>
         </button>
 
@@ -124,7 +124,7 @@
                     <button class="btn-modal-cancel" type="button" onclick="toggleLogoutModal(false)">
                         Cancelar
                     </button>
-                    <a href="index.html" class="btn-modal-confirm-blue" onclick="sessionStorage.clear();" style="text-decoration: none; display: inline-block; text-align: center; line-height: normal;">
+                    <a href="../index.html" class="btn-modal-confirm-blue" onclick="sessionStorage.clear();" style="text-decoration: none; display: inline-block; text-align: center; line-height: normal;">
                         Aceptar
                     </a>
                 </div>
@@ -133,7 +133,7 @@
 
         <footer class="app-footer">
             <div class="footer-left">
-                <img src="assets/puertoa-removebg-preview.png" alt="Logo Puerto Azul" class="footer-logo">
+                <img src="../assets/puertoa-removebg-preview.png" alt="Logo Puerto Azul" class="footer-logo">
             </div>
             
             <div class="footer-center">
@@ -157,9 +157,9 @@
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     
-    <script type="module" src="js/controllers/MapController.js"></script>
-    <script type="module" src="js/controllers/QueueController.js"></script>
-    <script type="module" src="js/controllers/ScheduleController.js"></script>
-    <script type="module" src="js/controllers/LogoutController.js"></script>
+    <script type="module" src="../js/controllers/MapController.js"></script>
+    <script type="module" src="../js/controllers/QueueController.js"></script>
+    <script type="module" src="../js/controllers/ScheduleController.js"></script>
+    <script type="module" src="../js/controllers/LogoutController.js"></script>
 </body>
 </html>

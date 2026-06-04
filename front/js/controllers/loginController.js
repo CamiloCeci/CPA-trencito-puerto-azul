@@ -55,11 +55,11 @@ export const LoginController = {
     redirectByUserRole(usuario) {
         setTimeout(() => {
             const routes = {
-                'ADMINISTRADOR': 'mapaadmin.html',
-                'OPERADOR': 'mapaoperador.html',
-                'VIP': 'mapavip.html'
+                'ADMINISTRADOR': 'pages/mapaadmin.html',
+                'OPERADOR': 'pages/mapaoperador.html',
+                'VIP': 'pages/mapavip.html'
             };
-            window.location.href = routes[usuario.rol] || 'mapasocio.html';
+            window.location.href = routes[usuario.rol] || 'pages/mapasocio.html';
         }, 1000);
     },
 
