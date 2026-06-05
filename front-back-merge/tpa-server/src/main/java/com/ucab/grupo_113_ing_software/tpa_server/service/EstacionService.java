@@ -1,9 +1,9 @@
 package com.ucab.grupo_113_ing_software.tpa_server.service;
 
 import com.ucab.grupo_113_ing_software.tpa_server.model.Estacion;
-import com.ucab.grupo_113_ing_software.tpa_server.model.SocioEstacion;
+import com.ucab.grupo_113_ing_software.tpa_server.model.ColaVirtual;
 import com.ucab.grupo_113_ing_software.tpa_server.repository.EstacionRepository;
-import com.ucab.grupo_113_ing_software.tpa_server.repository.SocioEstacionRepository;
+import com.ucab.grupo_113_ing_software.tpa_server.repository.ColaVirtualRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -15,13 +15,13 @@ import java.util.List;
 @Service
 public class EstacionService {
     private final EstacionRepository estacionRepository;
-    private final SocioEstacionRepository socioEstacionRepository;
+    private final ColaVirtualRepository colaVirtualRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public EstacionService(EstacionRepository estacionRepository, SocioEstacionRepository socioEstacionRepository, SimpMessagingTemplate messagingTemplate) {
+    public EstacionService(EstacionRepository estacionRepository, ColaVirtualRepository colaVirtualRepository, SimpMessagingTemplate messagingTemplate) {
         this.estacionRepository = estacionRepository;
-        this.socioEstacionRepository = socioEstacionRepository;
+        this.colaVirtualRepository = colaVirtualRepository;
         this.messagingTemplate = messagingTemplate;
     }
 
@@ -43,10 +43,10 @@ public class EstacionService {
     public Estacion eliminarEstacion(Long id) {
         Estacion estacion = estacionRepository.findById(id).orElse(null);
         if (estacion != null) {
-            List<SocioEstacion> sociosEnEstacion = socioEstacionRepository.findByEstacionId(id);
-            for (SocioEstacion se : sociosEnEstacion) {
-                se.setEstacion(null);
-                socioEstacionRepository.save(se);
+            List<ColaVirtual> sociosEnEstacion = colaVirtualRepository.findByEstacionId(id);
+            for (ColaVirtual cv : sociosEnEstacion) {
+                cv.setEstacion(null);
+                colaVirtualRepository.save(cv);
             }
             estacionRepository.deleteById(id);
         }

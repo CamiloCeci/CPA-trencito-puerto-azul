@@ -1,25 +1,25 @@
 const BASE_URL = 'http://localhost:8080/api/v1';
 
-export const MapService = {
-    async fetchTrenPosition() {
+export const MapaService = {
+    async obtenerPosicionTren() {
         const response = await fetch(`${BASE_URL}/gps/`);
         if (!response.ok) return null;
         return await response.json();
     },
 
-    async fetchEstaciones() {
+    async obtenerEstaciones() {
         const response = await fetch(`${BASE_URL}/estaciones/`);
         if (!response.ok) throw new Error('Error al cargar estaciones');
         return await response.json();
     },
 
-    async fetchTrenSeats() {
+    async obtenerPuestosTren() {
         const response = await fetch(`${BASE_URL}/tren/`);
         if (!response.ok) throw new Error('Error al cargar puestos del tren');
         return await response.json();
     },
 
-    async createEstacion(nombre, latitud, longitud) {
+    async crearEstacion(nombre, latitud, longitud) {
         const payload = { nombre, latitude: latitud, longitude: longitud };
         const response = await fetch(`${BASE_URL}/estaciones/`, {
             method: 'POST',
@@ -30,7 +30,7 @@ export const MapService = {
         return await response.json();
     },
 
-    async deleteEstacion(id) {
+    async eliminarEstacion(id) {
         const response = await fetch(`${BASE_URL}/estaciones/${id}/`, {
             method: 'DELETE'
         });

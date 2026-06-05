@@ -264,7 +264,7 @@ map.on('click', async function (event) {
 });
 
 // ====== CONTROLADORES DE MODALES Y LOGICA GENERAL ====== //
-function toggleModal(id, show) {
+function alternarModal(id, show) {
     document.getElementById(id).style.display = show ? 'flex' : 'none';
 }
 

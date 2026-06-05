@@ -1,15 +1,15 @@
 const BASE_URL = 'http://localhost:8080/api/v1/disponibilidad';
 
-export const ScheduleController = {
+export const DisponibilidadController = {
     serviceStartTime: "07:00",
     serviceEndTime: "22:00",
 
-    async init() {
-        await this.loadDisponibilidad();
+    async iniciar() {
+        await this.cargarDisponibilidad();
         this.verificarHorarioServicio();
     },
 
-    async loadDisponibilidad() {
+    async cargarDisponibilidad() {
         try {
             const response = await fetch(`${BASE_URL}/`);
             if (response.ok) {
@@ -22,7 +22,7 @@ export const ScheduleController = {
         }
     },
 
-    openServiceModal() {
+    abrirModalServicio() {
         document.getElementById('serviceStartInput').value = this.serviceStartTime;
         document.getElementById('serviceEndInput').value = this.serviceEndTime;
         document.getElementById('serviceErrorMsg').style.display = 'none';
@@ -30,10 +30,10 @@ export const ScheduleController = {
         const sidebar = document.getElementById('leftSidebar');
         if (sidebar) sidebar.classList.remove('open');
 
-        window.toggleModal('serviceModal', true);
+        window.alternarModal('serviceModal', true);
     },
 
-    validateTimeInput(input) {
+    validarEntradaTiempo(input) {
         let val = input.value.replace(/[^0-9:]/g, '');
         if (val.length === 2 && !val.includes(':') && input.value.length > val.length - 1) {
             val = val + ':';
@@ -42,7 +42,7 @@ export const ScheduleController = {
         input.value = val;
     },
 
-    async confirmServiceHours() {
+    async confirmarHorasServicio() {
         const startVal = document.getElementById('serviceStartInput').value.trim();
         const endVal = document.getElementById('serviceEndInput').value.trim();
         const errorMsg = document.getElementById('serviceErrorMsg');
@@ -64,19 +64,19 @@ export const ScheduleController = {
 
             this.serviceStartTime = startVal;
             this.serviceEndTime = endVal;
-            window.toggleModal('serviceModal', false);
+            window.alternarModal('serviceModal', false);
         } catch (err) {
             console.error(err);
         }
     },
 
-    async openStatusModal() {
-        await this.loadDisponibilidad();
+    async abrirModalEstado() {
+        await this.cargarDisponibilidad();
         const messageElement = document.getElementById('statusModalMessage');
         if (messageElement) {
             messageElement.innerHTML = `El trencito estará prestando su servicio desde las <strong>${this.serviceStartTime}</strong> hasta las <strong>${this.serviceEndTime}</strong>.`;
         }
-        window.toggleModal('statusModal', true);
+        window.alternarModal('statusModal', true);
     },
 
     verificarHorarioServicio() {
@@ -90,7 +90,7 @@ export const ScheduleController = {
             const mensajeTexto = `El servicio de trencito se encuentra cerrado en este momento. El horario de atención es de ${this.serviceStartTime} a ${this.serviceEndTime}.`;
             const el = document.getElementById('mensajeCierreTexto');
             if (el) el.innerText = mensajeTexto;
-            window.toggleModal('cierreServicioModal', true);
+            window.alternarModal('cierreServicioModal', true);
             return false;
         }
         return true;
@@ -102,11 +102,10 @@ export const ScheduleController = {
     }
 };
 
-window.ScheduleController = ScheduleController;
-window.openServiceModal = ScheduleController.openServiceModal.bind(ScheduleController);
-window.confirmServiceHours = ScheduleController.confirmServiceHours.bind(ScheduleController);
-window.openStatusModal = ScheduleController.openStatusModal.bind(ScheduleController);
-window.validateTimeInput = ScheduleController.validateTimeInput.bind(ScheduleController);
+window.DisponibilidadController = DisponibilidadController;
+window.abrirModalServicio = DisponibilidadController.abrirModalServicio.bind(DisponibilidadController);
+window.confirmarHorasServicio = DisponibilidadController.confirmarHorasServicio.bind(DisponibilidadController);
+window.abrirModalEstado = DisponibilidadController.abrirModalEstado.bind(DisponibilidadController);
+window.validarEntradaTiempo = DisponibilidadController.validarEntradaTiempo.bind(DisponibilidadController);
 
-ScheduleController.init();
-it();
+DisponibilidadController.iniciar();

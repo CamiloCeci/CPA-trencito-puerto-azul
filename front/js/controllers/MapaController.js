@@ -1,9 +1,9 @@
-import { MapService } from '../services/MapService.js';
+import { MapaService } from '../services/MapaService.js';
 import { WebSocketService } from '../services/WebSocketService.js';
-import { QueueService } from '../services/QueueService.js';
-import { QueueController } from './QueueController.js';
+import { ColaService } from '../services/ColaService.js';
+import { ColaController } from './ColaController.js';
 
-export const MapController = {
+export const MapaController = {
     map: null,
     stationData: {},
     leafletMarkers: {},
@@ -28,14 +28,14 @@ export const MapController = {
         iconAnchor: [20, 20]
     }),
 
-    async init() {
-        this.initMap();
-        await this.loadInitialData();
-        this.setupWebSockets();
-        this.setupEventListeners();
+    async iniciar() {
+        this.iniciarMapa();
+        await this.cargarDatosIniciales();
+        this.configurarWebSockets();
+        this.configurarEventos();
     },
 
-    initMap() {
+    iniciarMapa() {
         const esquinaSuroeste = L.latLng([10.614291045886088, -66.74899288309359]);
         const esquinaNoreste = L.latLng([10.626853913590706, -66.73838965971663]);
         const limitesPermitidos = L.latLngBounds(esquinaSuroeste, esquinaNoreste);
@@ -54,17 +54,17 @@ export const MapController = {
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(this.map);
         L.control.zoom({ position: 'topright' }).addTo(this.map);
 
-        this.map.on('click', this.onMapClick.bind(this));
+        this.map.on('click', this.alHacerClicEnMapa.bind(this));
     },
 
-    async loadInitialData() {
+    async cargarDatosIniciales() {
         try {
             const userStr = sessionStorage.getItem('usuarioLogueado');
             if (userStr) {
                 const user = JSON.parse(userStr);
                 if (user.rol === 'SOCIO' || user.rol === 'VIP') {
                     try {
-                        const status = await QueueService.getSocioStatus(user.id);
+                        const status = await ColaService.obtenerEstadoSocio(user.id);
                         if (status && status.estacion) {
                             this.userWaitingStationId = status.estacion.id;
                         }
@@ -74,29 +74,29 @@ export const MapController = {
                 }
             }
 
-            const estaciones = await MapService.fetchEstaciones();
+            const estaciones = await MapaService.obtenerEstaciones();
             estaciones.forEach(est => {
                 this.stationData[est.id] = {
                     name: est.nombre,
                     wait: est.contador,
                     coords: [est.latitude, est.longitude]
                 };
-                this.createStationMarker(est.id, this.stationData[est.id]);
+                this.crearMarcadorEstacion(est.id, this.stationData[est.id]);
             });
-            QueueController.init(this.stationData);
+            ColaController.iniciar(this.stationData);
 
-            const trenPos = await MapService.fetchTrenPosition();
-            if (trenPos) this.updateTrainPosition(trenPos);
+            const trenPos = await MapaService.obtenerPosicionTren();
+            if (trenPos) this.actualizarPosicionTren(trenPos);
 
-            const initialSeats = await MapService.fetchTrenSeats();
-            this.onTrenUpdate(initialSeats);
+            const initialSeats = await MapaService.obtenerPuestosTren();
+            this.alActualizarTren(initialSeats);
             
         } catch (err) {
             console.error('Error al cargar datos:', err);
         }
     },
 
-    createStationMarker(id, data) {
+    crearMarcadorEstacion(id, data) {
         const customDiv = document.createElement('div');
         customDiv.className = 'station-marker-leaflet';
         
@@ -126,7 +126,7 @@ export const MapController = {
         customDiv.onclick = (e) => {
             e.stopPropagation();
             if (this.isCreatingStation) return;
-            QueueController.openStation(id, data.name);
+            ColaController.abrirEstacion(id, data.name);
         };
 
         const customIcon = L.divIcon({
@@ -139,23 +139,23 @@ export const MapController = {
         this.leafletMarkers[id] = marker;
     },
 
-    onMapClick(e) {
+    alHacerClicEnMapa(e) {
         if (this.isCreatingStation) {
-            this.handleCreateStation(e.latlng);
+            this.manejarCrearEstacion(e.latlng);
         } else {
             const sidebar = document.getElementById('leftSidebar');
             if (sidebar) sidebar.classList.remove('open');
         }
     },
 
-    async handleCreateStation(latlng) {
+    async manejarCrearEstacion(latlng) {
         const nameInput = document.getElementById('newStationNameInput');
         const name = nameInput ? nameInput.value.trim() : 'Nueva Estación';
         
         try {
-            const newEst = await MapService.createEstacion(name, latlng.lat, latlng.lng);
+            const newEst = await MapaService.crearEstacion(name, latlng.lat, latlng.lng);
             this.stationData[newEst.id] = { name: newEst.nombre, wait: 0, coords: [newEst.latitude, newEst.longitude] };
-            this.createStationMarker(newEst.id, this.stationData[newEst.id]);
+            this.crearMarcadorEstacion(newEst.id, this.stationData[newEst.id]);
             this.isCreatingStation = false;
             document.getElementById('map').style.cursor = '';
         } catch (err) {
@@ -163,14 +163,14 @@ export const MapController = {
         }
     },
 
-    setupWebSockets() {
+    configurarWebSockets() {
         WebSocketService.connect(
-            (data) => this.onEstacionUpdate(data),
-            (data) => this.onTrenUpdate(data)
+            (data) => this.alActualizarEstacion(data),
+            (data) => this.alActualizarTren(data)
         );
     },
 
-    onEstacionUpdate(data) {
+    alActualizarEstacion(data) {
         const id = data.estacionId;
         if (this.stationData[id]) {
             this.stationData[id].wait = data.contador;
@@ -185,13 +185,13 @@ export const MapController = {
                 // Ocultar siempre para Socio/VIP
                 badge.style.display = (isStaff && data.contador > 0) ? 'flex' : 'none';
             }
-            if (QueueController.activeStationId === id) {
-                QueueController.updateStationModalDisplay();
+            if (ColaController.activeStationId === id) {
+                ColaController.actualizarVisualizacionModalEstacion();
             }
         }
     },
 
-    onTrenUpdate(data) {
+    alActualizarTren(data) {
         let puestos;
         if (typeof data === 'object') {
             // Check if it's the GPS object or the seats object
@@ -210,11 +210,11 @@ export const MapController = {
         }
         
         if (data.latitude || data.lat) {
-            this.updateTrainPosition(data);
+            this.actualizarPosicionTren(data);
         }
     },
 
-    updateTrainPosition(data) {
+    actualizarPosicionTren(data) {
         const lat = parseFloat(data.latitude || data.lat);
         const lng = parseFloat(data.longitude || data.lng);
         if (isNaN(lat) || isNaN(lng)) return;
@@ -227,22 +227,22 @@ export const MapController = {
         }
     },
 
-    setupEventListeners() {
+    configurarEventos() {
         // ... (more event listeners could go here)
     }
 };
 
 // Initialize if on a map page
 if (document.getElementById('map')) {
-    MapController.init();
+    MapaController.iniciar();
 }
 
-window.MapController = MapController;
+window.MapaController = MapaController;
 window.toggleSidebar = () => {
     const sidebar = document.getElementById('leftSidebar');
     if (sidebar) sidebar.classList.toggle('open');
 };
-window.toggleModal = (id, show) => {
+window.alternarModal = (id, show) => {
     const modal = document.getElementById(id);
     if (modal) modal.style.display = show ? 'flex' : 'none';
 };

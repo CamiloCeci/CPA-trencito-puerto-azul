@@ -9,7 +9,7 @@ public class Socio extends Usuario {
 
     @OneToOne(mappedBy = "socio", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
-    private SocioEstacion socioEstacion;
+    private ColaVirtual colaVirtual;
 
     public Socio() {
         super();
@@ -19,20 +19,20 @@ public class Socio extends Usuario {
         super(id, cedula, clave, Rol.SOCIO);
     }
 
-    public SocioEstacion getSocioEstacion() {
-        return socioEstacion;
+    public ColaVirtual getColaVirtual() {
+        return colaVirtual;
     }
 
-    public void setSocioEstacion(SocioEstacion socioEstacion) {
-        this.socioEstacion = socioEstacion;
+    public void setColaVirtual(ColaVirtual colaVirtual) {
+        this.colaVirtual = colaVirtual;
     }
 
     /**
      * Returns the ID of the current station, or null if not waiting at any station.
      */
     public Long getIdEstacionActual() {
-        return socioEstacion != null && socioEstacion.getEstacion() != null
-                ? socioEstacion.getEstacion().getId()
+        return colaVirtual != null && colaVirtual.getEstacion() != null
+                ? colaVirtual.getEstacion().getId()
                 : null;
     }
 
@@ -40,6 +40,6 @@ public class Socio extends Usuario {
      * Whether this socio is currently waiting at a station.
      */
     public boolean isEsperando() {
-        return socioEstacion != null && socioEstacion.isEsperando();
+        return colaVirtual != null && colaVirtual.isEsperando();
     }
 }

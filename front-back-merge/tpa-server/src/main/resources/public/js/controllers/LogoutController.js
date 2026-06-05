@@ -24,7 +24,17 @@ export const LogoutController = {
     toggleLogoutModal(show) {
         const modal = document.querySelector('.logout-modal');
         if (modal) modal.style.display = show ? 'flex' : 'none';
+    },
+
+    redirigirAInicioSesion() {
+        sessionStorage.clear();
+        window.location.href = '../index.html';
     }
+
 };
+
+// Exponer funciones al objeto global window para su uso en onclick de HTML
+window.redirigirAInicioSesion = LogoutController.redirigirAInicioSesion;
+window.toggleLogoutModal = (show) => LogoutController.toggleLogoutModal(show);
 
 LogoutController.init();
