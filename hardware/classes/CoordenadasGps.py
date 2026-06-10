@@ -185,7 +185,7 @@ class CoordenadasGps:
         if coords[1].split(' ')[1] != 'E':
             lon *= -1
 
-        self.send_at('AT+HTTPPARA="URL","http://openclaw.telemo.com.ve:8030/api/gps/%s/%s"' % (lat, lon), 1000)
+        self.send_at('AT+HTTPPARA="URL","http://openclaw.telemo.com.ve:8030/api/v1/gps/%s/%s"' % (lat, lon), 1000)
         self.send_at('AT+HTTPACTION=0', 800)
 
     def initialize(self):
