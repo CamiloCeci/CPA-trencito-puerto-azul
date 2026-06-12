@@ -1,0 +1,773 @@
+@startuml TrencitoPuertoAzul_MasterBlueprint
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 80
+skinparam linetype ortho
+skinparam class {
+    BackgroundColor White
+    BorderColor Black
+}
+
+'Hardware'
+ class CoordenadasGps_Python <<Python Script>> {
+        - TX_PIN: int = 11
+        - RX_PIN: int = 10
+        - PWRKEY_PIN: int = 18
+        - POWERON_PIN: int = 12
+        - RESET_PIN: int = 17
+        - DTR_PIN: int = 9
+        - BAUD: int = 115200
+        - uart: machine.UART
+        + _init_(uart_id: int, timeout: int)
+        - _ts(): String
+        + log(msg: String): void
+        - _flush_uart(): void
+        - _read_uart(wait_ms: int, quiet_ms: int): String
+        + send_at(cmd: String, wait_ms: int): String
+        + boot_factory_like(): void
+        + sync_modem(): boolean
+        + init_gnss_factory_sequence(): void
+        + parse_gps(raw: String): Map
+        + auto_cycle(): tuple
+        + http_get_coords(coords: tuple): void
+        + initialize(): boolean
+        + run_auto_cycle(interval: int): void
+    }
+
+    CoordenadasGps_Python ..> CoordenadaGpsController : <<HTTP GET /api/gps/{lat}/{lon}>>
+    Tren "1" o-- "1" CoordenadasGps_Python : <<Contiene Hardware Físico>>
+' ==========================================
+' 1. MODELO DE DOMINIO Y ENTIDADES (JPA)
+' ==========================================
+
+
+    abstract class Usuario {
+        # id: Long
+        # cedula: String
+        # clave: String
+        # rol: Rol
+        + Usuario()
+        + Usuario(cedula: String, clave: String)
+        + Usuario(id: Long, cedula: String, clave: String, rol: Rol)
+        + getId(): Long
+        + setId(id: Long): void
+        + getCedula(): String
+        + setCedula(cedula: String): void
+        + getClave(): String
+        + setClave(clave: String): void
+        + getRol(): Rol
+        + setRol(rol: Rol): void
+    }
+
+    enum Rol <<Enum>> {
+        SOCIO
+        VIP
+        OPERADOR
+        ADMINISTRADOR
+    }
+
+    class Socio {
+        - colaVirtual: ColaVirtual
+        + Socio()
+        + Socio(id: Long, cedula: String, clave: String)
+        + getColaVirtual(): ColaVirtual
+        + setColaVirtual(colaVirtual: ColaVirtual): void
+        + getIdEstacionActual(): Long
+        + isEsperando(): boolean
+    }
+
+    class VIP {
+        + VIP()
+        + VIP(id: Long, cedula: String, clave: String)
+    }
+
+    class Operador {
+        + Operador()
+        + Operador(id: Long, cedula: String, clave: String)
+    }
+
+    class Administrador {
+        + Administrador()
+        + Administrador(id: Long, cedula: String, clave: String)
+    }
+
+    class Estacion {
+        - id: Long
+        - nombre: String
+        - contadorPersonasEnCola: int
+        - latitude: double
+        - longitude: double
+        + Estacion()
+        + Estacion(id: Long, nombre: String, latitude: double, longitude: double)
+        + getNombre(): String
+        + setNombre(nombre: String): void
+        + getId(): Long
+        + setId(id: Long): void
+        + getContador(): int
+        + getLatitude(): double
+        + getLongitude(): double
+        + subirContador(): void
+        + bajarContador(): void
+    }
+
+    class ColaVirtual {
+        - id: Long
+        - socio: Socio
+        - estacion: Estacion
+        + ColaVirtual()
+        + ColaVirtual(socio: Socio, estacion: Estacion)
+        + getId(): Long
+        + setId(id: Long): void
+        + getSocio(): Socio
+        + setSocio(socio: Socio): void
+        + getEstacion(): Estacion
+        + setEstacion(estacion: Estacion): void
+        + isEsperando(): boolean
+    }
+
+    class Tren {
+        - capMax: int = 20
+        - puestosLibres: int
+        + Tren(puestosLibres: int)
+        + getCapMax(): int
+        + getPuestosLibres(): int
+        + setPuestosLlenos(puestosLlenos: int): boolean
+        + aumentarPuestosLlenos(): boolean
+        + disminuirPuestosLlenos(): boolean
+    }
+
+    class CoordenadaGps {
+        - id: long
+        - latitude: double
+        - longitude: double
+        - speed: double
+        - timestamp: LocalDateTime
+        + CoordenadaGps()
+        + CoordenadaGps(latitude: double, longitude: double)
+        + CoordenadaGps(latitude: double, longitude: double, speed: double)
+        + CoordenadaGps(id: long, latitude: double, longitude: double, speed: double, timestamp: LocalDateTime)
+        + getId(): long
+        + getLatitude(): double
+        + setLatitude(latitude: double): void
+        + getLongitude(): double
+        + setLongitude(longitude: double): void
+        + getSpeed(): double
+        + setSpeed(speed: double): void
+        + getTimestamp(): LocalDateTime
+        + setTimestamp(timestamp: LocalDateTime): void
+    }
+
+    class Disponibilidad {
+        - id: Long
+        - desde: LocalTime
+        - hasta: LocalTime
+        - formatter: DateTimeFormatter
+        + Disponibilidad()
+        + Disponibilidad(id: Long, desde: LocalTime, hasta: LocalTime)
+        + Disponibilidad(horaDesde: String, horaHasta: String)
+        + getId(): Long
+        + setId(id: Long): void
+        + getDesde(): LocalTime
+        + setDesde(desde: LocalTime): void
+        + setDesde(horaDesde: String): void
+        + getHasta(): LocalTime
+        + setHasta(hasta: LocalTime): void
+        + setHasta(horaHasta: String): void
+    }
+
+
+' ==========================================
+' 2. BACKEND: CAPA DE ACCESO A DATOS Y DTOS
+' ==========================================
+
+
+    interface JpaRepository <<Interface>>
+
+    interface AdministradorRepository {
+        + findByCedula(cedula: String): Administrador
+    }
+    interface ColaVirtualRepository {
+        + findBySocioId(socioId: Long): Optional<ColaVirtual>
+        + findByEstacionId(estacionId: Long): List<ColaVirtual>
+        + findByEstacionIsNotNull(): List<ColaVirtual>
+        + deleteBySocioId(socioId: Long): void
+    }
+    interface DisponibilidadRepository
+    interface EstacionRepository
+    interface GpsCoordenadasRepository
+    interface OperadorRepository {
+        + findByCedula(cedula: String): Operador
+    }
+    interface SocioRepository {
+        + findByCedula(cedula: String): Socio
+    }
+    interface UsuarioRepository {
+        + findByCedula(cedula: String): Usuario
+    }
+    interface VIPRepository {
+        + findByCedula(cedula: String): VIP
+    }
+
+    class AsignarRequest <<DTO>> {
+        + socioId: Long
+        + estacionId: Long
+    }
+    class Coordenadas <<DTO>> {
+        + longitude: double
+        + latitude: double
+    }
+    class EstacionUpdateDTO <<DTO>> {
+        - estacionId: Long
+        - contador: int
+        + getEstacionId(): Long
+        + setEstacionId(estacionId: Long): void
+        + getContador(): int
+        + setContador(contador: int): void
+    }
+    class HoraRequest <<DTO>> {
+        + horaDesde: String
+        + horaHasta: String
+    }
+    class LoginPayload <<DTO>> {
+        + body: LoginRequest
+    }
+    class LoginRequest <<DTO>> {
+        + cedula: String
+        + clave: String
+    }
+    class PuestoPayload <<DTO>> {
+        + puestos: int
+    }
+
+
+' ==========================================
+' 3. BACKEND: CONFIGURACIÓN
+' ==========================================
+
+
+    class WebSocketConfig {
+        + configureMessageBroker(config: MessageBrokerRegistry): void
+        + registerStompEndpoints(registry: StompEndpointRegistry): void
+    }
+
+    class CorsConfig {
+        + corsConfigurer(): WebMvcConfigurer
+    }
+
+    class TpaServerApplication {
+        + {static} main(args: String[]): void
+    }
+
+
+' ==========================================
+' 4. BACKEND: LÓGICA DE NEGOCIO Y CONTROLADORES
+' ==========================================
+
+
+    class AdministradorService {
+        - administradorRepository: AdministradorRepository
+        + crearAdministrador(administrador: Administrador): Administrador
+        + findByCedula(cedula: String): Administrador
+        + findById(id: Long): Administrador
+        + getAllAdministradores(): List<Administrador>
+    }
+    class ColaVirtualService {
+        - colaVirtualRepository: ColaVirtualRepository
+        + asignarEstacion(socio: Socio, estacion: Estacion): ColaVirtual
+        + desasignarEstacion(socioId: Long): ColaVirtual
+        + findBySocioId(socioId: Long): Optional<ColaVirtual>
+        + findByEstacionId(estacionId: Long): List<ColaVirtual>
+        + findAllEsperando(): List<ColaVirtual>
+        + eliminarAsignacion(socioId: Long): void
+        + getAll(): List<ColaVirtual>
+    }
+    class DisponibilidadService {
+        - disponibilidadRepository: DisponibilidadRepository
+        + getDisponibilidad(): Disponibilidad
+        + getDesde(): LocalTime
+        + getHasta(): LocalTime
+        + setDisponibilidad(horaRequest: HoraRequest): Disponibilidad
+        + updateDisponibilidad(horaRequest: HoraRequest): Disponibilidad
+    }
+    class EstacionService {
+        - estacionRepository: EstacionRepository
+        - colaVirtualRepository: ColaVirtualRepository
+        - messagingTemplate: SimpMessagingTemplate
+        + crearEstacion(estacion: Estacion): Estacion
+        + findById(id: Long): Estacion
+        + getAllEstaciones(): List<Estacion>
+        + eliminarEstacion(id: Long): Estacion
+        + subirContadorPersonasEnCola(id: Long): Estacion
+        + bajarContadorPersonasEnCola(id: Long): Estacion
+    }
+    class GpsService {
+        - gpsCoordenadasRepository: GpsCoordenadasRepository
+        - simpMessagingTemplate: SimpMessagingTemplate
+        + getCoordenadas(): CoordenadaGps
+        + createCoordenadaas(latitude: double, longitude: double, speed: double): CoordenadaGps
+        + updateCoordenadas(latitude: double, longitude: double): CoordenadaGps
+        + updateCoordenadas(latitude: double, longitude: double, speed: double): CoordenadaGps
+    }
+    class OperadorService {
+        - operadorRepository: OperadorRepository
+        + crearOperador(operador: Operador): Operador
+        + findByCedula(cedula: String): Operador
+        + findById(id: Long): Operador
+        + getAllOperadores(): List<Operador>
+    }
+    class SocioService {
+        - socioRepository: SocioRepository
+        + crearSocio(socio: Socio): Socio
+        + findByCedula(cedula: String): Socio
+        + findById(id: Long): Socio
+        + getAllSocios(): List<Socio>
+    }
+    class TrenService {
+        - tren: Tren
+        - simpMessagingTemplate: SimpMessagingTemplate
+        + getTren(): Tren
+        + getCapMax(): int
+        + setPuestosLlenos(puestosLlenos: int): boolean
+        + getPuestosLlenos(): int
+        + aumentarPuestosLlenos(): boolean
+        + disminuirPuestosLlenos(): boolean
+    }
+    class UsuarioService {
+        - usuarioRepository: UsuarioRepository
+        + authenticate(cedula: String, password: String): boolean
+        + findByCedula(cedula: String): Usuario
+        + findById(id: Long): Usuario
+        + getAllUsuarios(): List<Usuario>
+    }
+    class VIPService {
+        - vipRepository: VIPRepository
+        + crearVIP(vip: VIP): VIP
+        + findByCedula(cedula: String): VIP
+        + findById(id: Long): VIP
+        + getAllVIPs(): List<VIP>
+    }
+
+    class AdministradorController {
+        - administradorService: AdministradorService
+        + createAdministrador(administrador: Administrador): ResponseEntity<Administrador>
+        + getAdministradorById(id: Long): ResponseEntity<Administrador>
+        + getAdministradorByCedula(cedula: String): ResponseEntity<Administrador>
+        + getAllAdministradores(): ResponseEntity<List<Administrador>>
+    }
+    class ColaVirtualController {
+        - colaVirtualService: ColaVirtualService
+        - socioService: SocioService
+        - estacionService: EstacionService
+        + asignarEstacion(request: AsignarRequest): ResponseEntity<?>
+        + getBySocioId(socioId: Long): ResponseEntity<?>
+        + getByEstacionId(estacionId: Long): ResponseEntity<List<ColaVirtual>>
+        + getAllEsperando(): ResponseEntity<List<ColaVirtual>>
+        + getAll(): ResponseEntity<List<ColaVirtual>>
+        + desasignarEstacion(socioId: Long): ResponseEntity<?>
+        + eliminarAsignacion(socioId: Long): ResponseEntity<?>
+        - makeResponse(o: Object, msg: String): Map<String, Object>
+    }
+    class CoordenadaGpsController {
+        - gpsCoordenadasRepository: GpsCoordenadasRepository
+        - gpsService: GpsService
+        + getCoordenadaGps(): ResponseEntity<CoordenadaGps>
+        + updateCoordenadaGps(latitude: double, longitude: double): ResponseEntity<?>
+        + updateCoordenadaGps(latitude: double, longitude: double, speed: double): ResponseEntity<?>
+        + createCoordenadaGps(latitude: double, longitude: double, speed: double): ResponseEntity<?>
+    }
+    class DisponibilidadController {
+        - disponibilidadService: DisponibilidadService
+        + getDesde(): ResponseEntity<?>
+        + getHasta(): ResponseEntity<?>
+        + getDisponibilidad(): ResponseEntity<?>
+        + postDisponibilidad(horaRequest: HoraRequest): ResponseEntity<?>
+        + putDisponibilidad(horaRequest: HoraRequest): ResponseEntity<?>
+    }
+    class EstacionController {
+        - estacionService: EstacionService
+        + crearEstacion(estacion: Estacion): ResponseEntity<Estacion>
+        + getAllEstaciones(): ResponseEntity<List<Estacion>>
+        + eliminarEstacion(id: Long): ResponseEntity<?>
+        - makeResponse(estacion: Estacion, msg: String): Map<String, Object>
+    }
+    class OperadorController {
+        - operadorService: OperadorService
+        + createOperador(operador: Operador): ResponseEntity<Operador>
+        + getOperadorById(id: Long): ResponseEntity<Operador>
+        + getOperadorByCedula(cedula: String): ResponseEntity<Operador>
+        + getAllOperadores(): ResponseEntity<List<Operador>>
+    }
+    class SocioController {
+        - socioService: SocioService
+        + createSocio(socio: Socio): ResponseEntity<Socio>
+        + getSocioById(id: Long): ResponseEntity<Socio>
+        + getSocioByCedula(cedula: String): ResponseEntity<Socio>
+        + getAllSocios(): ResponseEntity<List<Socio>>
+    }
+    class TrenController {
+        - trenService: TrenService
+        + getPuestosLlenos(): ResponseEntity<?>
+        + aumentarPuestosLlenos(): ResponseEntity<?>
+        + disminuirPuestosLlenos(): ResponseEntity<?>
+        + updatePuestosLlenos(puestos: PuestoPayload): ResponseEntity<?>
+        - makeResponse(o: Object, msg: String): Map<String, Object>
+    }
+    class UsuarioController {
+        - usuarioService: UsuarioService
+        + getAllUsers(): List<Usuario>
+        + getUserById(id: Long): ResponseEntity<Usuario>
+        + login(loginPayload: LoginPayload): ResponseEntity<Usuario>
+    }
+    class VIPController {
+        - vipService: VIPService
+        + createVIP(vip: VIP): ResponseEntity<VIP>
+        + getVIPById(id: Long): ResponseEntity<VIP>
+        + getVIPByCedula(cedula: String): ResponseEntity<VIP>
+        + getAllVIPs(): ResponseEntity<List<VIP>>
+    }
+
+
+' ==========================================
+' 5. FRONTEND (VISTAS, CONTROLADORES, SERVICIOS, MODELOS)
+' ==========================================
+
+
+
+        class UsuarioJS {
+            + id: Number
+            + cedula: String
+            + clave: String
+            + rol: String
+            + constructor(id, cedula, clave, rol)
+        }
+        class TrenJS {
+            + id: Number
+            + latitud: Number
+            + longitud: Number
+            + asientosDisponibles: Number
+            + constructor(id, latitud, longitud, asientosDisponibles)
+        }
+        class EstacionJS {
+            + id: Number
+            + nombre: String
+            + latitud: Number
+            + longitud: Number
+            + contador: Number
+            + constructor(id, nombre, latitud, longitud, contador)
+        }
+
+
+        class index_html <<View>>
+        class mapaadmin_html <<View>>
+        class mapaoperador_html <<View>>
+        class mapasocio_html <<View>>
+        class mapavip_html <<View>>
+
+
+
+        class AuthService <<Service>> {
+            + login(cedula: String, clave: String): Promise<Object>
+            + logout(): void
+            + getUsuarioLogueado(): Object
+        }
+        class MapaService <<Service>> {
+            + obtenerPosicionTren(): Promise<Object>
+            + obtenerEstaciones(): Promise<Array>
+            + obtenerPuestosTren(): Promise<Number>
+            + crearEstacion(nombre: String, latitud: Number, longitud: Number): Promise<Object>
+            + eliminarEstacion(id: Number): Promise<boolean>
+        }
+        class ColaServiceJS <<Service>> {
+            + unirseACola(socioId: Number, estacionId: Number): Promise<Object>
+            + salirDeCola(socioId: Number): Promise<boolean>
+            + obtenerEstadoSocio(socioId: Number): Promise<Object>
+        }
+        class WebSocketServiceJS <<Service>> {
+            + stompClient: Object
+            + connect(onEstacionUpdate: Function, onTrenUpdate: Function): void
+        }
+
+
+        class LoginController <<Controller>> {
+            + init(): void
+            + onSubmit(e: Event): Promise<void>
+            + validateForm(cedula: String, clave: String): boolean
+            + redirectByUserRole(usuario: Object): void
+            + showMessage(msg: String, isError: boolean): void
+            + onHelpClick(e: Event): void
+            + restoreRememberMe(): void
+        }
+        class LogoutController <<Controller>> {
+            + init(): void
+            + toggleLogoutModal(show: boolean): void
+            + redirigirAInicioSesion(): void
+        }
+        class MapaControllerJS <<Controller>> {
+            + map: Object
+            + stationData: Object
+            + leafletMarkers: Object
+            + trencitoMarker: Object
+            + isCreatingStation: boolean
+            + userWaitingStationId: Number
+            + trenIconoPersonalizado: Object
+            + iniciar(): Promise<void>
+            + iniciarMapa(): void
+            + cargarDatosIniciales(): Promise<void>
+            + crearMarcadorEstacion(id: Number, data: Object): void
+            + alHacerClicEnMapa(e: Event): void
+            + manejarCrearEstacion(latlng: Object): Promise<void>
+            + configurarWebSockets(): void
+            + alActualizarEstacion(data: Object): void
+            + alActualizarTren(data: Object): void
+            + actualizarPosicionTren(data: Object): void
+            + configurarEventos(): void
+        }
+        class ColaControllerJS <<Controller>> {
+            + activeStationId: Number
+            + stationData: Object
+            + iniciar(stationData: Object): void
+            + abrirEstacion(id: Number, name: String): void
+            + actualizarVisualizacionModalEstacion(): void
+            + alternarModal(id: String, show: boolean): void
+            + unirseAColaVirtual(): Promise<void>
+            + eliminarseDeColaVirtual(): Promise<void>
+            + unirseAColaPrioridad(): Promise<void>
+            + actualizarIndicadoresMapa(): void
+            + mostrarMensajeCola(msg: String): void
+            + alPresionarOKCola(): void
+            + reiniciarColaEstacion(): void
+            + mostrarTiempoEstimado(): void
+        }
+        class PuestosControllerJS <<Controller>> {
+            + currentAvailableSeats: Number
+            + tempSeats: Number
+            + iniciar(): Promise<void>
+            + cargarPuestos(): Promise<void>
+            + actualizarVisualizacionPuestos(): void
+            + abrirModalPuestos(): void
+            + alterarPuestosTemporales(amount: Number): void
+            + actualizarBotonConfirmar(): void
+            + confirmarCambiosPuestos(): Promise<void>
+            + manejarCancelarPuestos(): void
+            + forzarSalidaPuestos(): void
+            + validarEntradaPuestos(input: Object): void
+        }
+        class EstacionControllerJS <<Controller>> {
+            + stationToDeleteId: Number
+            + abrirModalCrearEstacion(): void
+            + iniciarCrearEstacion(): void
+            + abrirModalEliminarEstacion(): Promise<void>
+            + confirmarEliminarEstacion(): Promise<void>
+        }
+        class DisponibilidadControllerJS <<Controller>> {
+            + serviceStartTime: String
+            + serviceEndTime: String
+            + iniciar(): Promise<void>
+            + cargarDisponibilidad(): Promise<void>
+            + abrirModalServicio(): void
+            + validarEntradaTiempo(input: Object): void
+            + confirmarHorasServicio(): Promise<void>
+            + abrirModalEstado(): Promise<void>
+            + verificarHorarioServicio(): boolean
+            + tiempoEnMinutos(horaString: String): Number
+        }
+
+
+
+
+' ============================================================
+'  R E L A C I O N E S
+' ============================================================
+
+' ----------------------------------------------------------
+' A. HERENCIA EN EL MODELO DE DOMINIO
+' ----------------------------------------------------------
+' Socio extiende Usuario
+Usuario <|-- Socio
+' VIP extiende Socio (NO Usuario directamente)
+Socio <|-- VIP
+' Operador extiende Usuario
+Usuario <|-- Operador
+' Administrador extiende Operador (NO Usuario directamente)
+Operador <|-- Administrador
+
+' ----------------------------------------------------------
+' B. ATRIBUTO ENUM EN USUARIO
+' ----------------------------------------------------------
+' Usuario tiene un atributo 'rol' de tipo Rol
+Usuario --> Rol : rol
+
+' ----------------------------------------------------------
+' C. ASOCIACIONES JPA ENTRE ENTIDADES
+' ----------------------------------------------------------
+' ColaVirtual tiene un @OneToOne con Socio
+ColaVirtual "1" --> "1" Socio : socio
+' Socio tiene un @OneToOne inverso (mappedBy) con ColaVirtual
+Socio "1" --> "0..1" ColaVirtual : colaVirtual
+
+' ColaVirtual tiene un @ManyToOne con Estacion
+ColaVirtual "*" --> "0..1" Estacion : estacion
+
+' ----------------------------------------------------------
+' D. REPOSITORIOS extienden JpaRepository
+' ----------------------------------------------------------
+JpaRepository <|.. AdministradorRepository
+JpaRepository <|.. ColaVirtualRepository
+JpaRepository <|.. DisponibilidadRepository
+JpaRepository <|.. EstacionRepository
+JpaRepository <|.. GpsCoordenadasRepository
+JpaRepository <|.. OperadorRepository
+JpaRepository <|.. SocioRepository
+JpaRepository <|.. UsuarioRepository
+JpaRepository <|.. VIPRepository
+
+' ----------------------------------------------------------
+' E. REPOSITORIOS gestionan ENTIDADES (tipos genéricos)
+' ----------------------------------------------------------
+AdministradorRepository ..> Administrador : <<manages>>
+ColaVirtualRepository ..> ColaVirtual : <<manages>>
+DisponibilidadRepository ..> Disponibilidad : <<manages>>
+EstacionRepository ..> Estacion : <<manages>>
+GpsCoordenadasRepository ..> CoordenadaGps : <<manages>>
+OperadorRepository ..> Operador : <<manages>>
+SocioRepository ..> Socio : <<manages>>
+UsuarioRepository ..> Usuario : <<manages>>
+VIPRepository ..> VIP : <<manages>>
+
+' ----------------------------------------------------------
+' F. SERVICIOS dependen de REPOSITORIOS (inyección)
+' ----------------------------------------------------------
+AdministradorService --> AdministradorRepository : administradorRepository
+ColaVirtualService --> ColaVirtualRepository : colaVirtualRepository
+DisponibilidadService --> DisponibilidadRepository : disponibilidadRepository
+EstacionService --> EstacionRepository : estacionRepository
+EstacionService --> ColaVirtualRepository : colaVirtualRepository
+GpsService --> GpsCoordenadasRepository : gpsCoordenadasRepository
+OperadorService --> OperadorRepository : operadorRepository
+SocioService --> SocioRepository : socioRepository
+TrenService --> Tren : tren
+UsuarioService --> UsuarioRepository : usuarioRepository
+VIPService --> VIPRepository : vipRepository
+
+' ----------------------------------------------------------
+' G. SERVICIOS que usan SimpMessagingTemplate (WebSocket)
+' ----------------------------------------------------------
+EstacionService ..> WebSocketConfig : <<usa WebSocket>>
+GpsService ..> WebSocketConfig : <<usa WebSocket>>
+TrenService ..> WebSocketConfig : <<usa WebSocket>>
+
+' ----------------------------------------------------------
+' H. SERVICIOS que usan DTOs
+' ----------------------------------------------------------
+DisponibilidadService ..> HoraRequest : <<usa>>
+EstacionService ..> EstacionUpdateDTO : <<crea>>
+TrenService ..> PuestoPayload : <<crea>>
+
+' ----------------------------------------------------------
+' I. CONTROLADORES dependen de SERVICIOS
+' ----------------------------------------------------------
+AdministradorController --> AdministradorService : administradorService
+ColaVirtualController --> ColaVirtualService : colaVirtualService
+ColaVirtualController --> SocioService : socioService
+ColaVirtualController --> EstacionService : estacionService
+CoordenadaGpsController --> GpsService : gpsService
+CoordenadaGpsController --> GpsCoordenadasRepository : gpsCoordenadasRepository
+DisponibilidadController --> DisponibilidadService : disponibilidadService
+EstacionController --> EstacionService : estacionService
+OperadorController --> OperadorService : operadorService
+SocioController --> SocioService : socioService
+TrenController --> TrenService : trenService
+UsuarioController --> UsuarioService : usuarioService
+VIPController --> VIPService : vipService
+
+' ----------------------------------------------------------
+' J. CONTROLADORES usan DTOs como parámetros de entrada
+' ----------------------------------------------------------
+ColaVirtualController ..> AsignarRequest : <<recibe>>
+DisponibilidadController ..> HoraRequest : <<recibe>>
+TrenController ..> PuestoPayload : <<recibe>>
+UsuarioController ..> LoginPayload : <<recibe>>
+
+' ----------------------------------------------------------
+' K. LoginPayload contiene LoginRequest (record anidado)
+' ----------------------------------------------------------
+LoginPayload *-- LoginRequest : body
+
+' ----------------------------------------------------------
+' L. COORDENADAS DTO (referenciado en GPS domain)
+' ----------------------------------------------------------
+Coordenadas ..> CoordenadaGps : <<mapea a>>
+
+' ----------------------------------------------------------
+' M. TpaServerApplication inicia la aplicación Spring Boot
+' ----------------------------------------------------------
+TpaServerApplication ..> WebSocketConfig : <<configura>>
+TpaServerApplication ..> CorsConfig : <<configura>>
+
+' ----------------------------------------------------------
+' N. FRONTEND: Modelos JS representan entidades Backend
+' ----------------------------------------------------------
+UsuarioJS ..> Usuario : <<representa en frontend>>
+TrenJS ..> Tren : <<representa en frontend>>
+EstacionJS ..> Estacion : <<representa en frontend>>
+
+' ----------------------------------------------------------
+' O. FRONTEND: Controladores JS usan Servicios JS
+' ----------------------------------------------------------
+LoginController --> AuthService : <<usa>>
+LogoutController --> AuthService : <<usa>>
+MapaControllerJS --> MapaService : <<usa>>
+MapaControllerJS --> WebSocketServiceJS : <<usa>>
+MapaControllerJS --> ColaServiceJS : <<usa>>
+MapaControllerJS --> ColaControllerJS : <<invoca>>
+ColaControllerJS --> ColaServiceJS : <<usa>>
+PuestosControllerJS --> MapaService : <<usa>>
+EstacionControllerJS --> MapaService : <<usa>>
+EstacionControllerJS --> MapaControllerJS : <<modifica>>
+
+' ----------------------------------------------------------
+' P. FRONTEND: Servicios JS consumen API REST Backend
+' ----------------------------------------------------------
+AuthService ..> UsuarioController : <<HTTP POST /login>>
+MapaService ..> CoordenadaGpsController : <<HTTP GET /gps>>
+MapaService ..> EstacionController : <<HTTP GET/POST/DELETE /estaciones>>
+MapaService ..> TrenController : <<HTTP GET /tren>>
+ColaServiceJS ..> ColaVirtualController : <<HTTP POST/PUT/GET /socio-estacion>>
+DisponibilidadControllerJS ..> DisponibilidadController : <<HTTP GET/PUT /disponibilidad>>
+PuestosControllerJS ..> TrenController : <<HTTP PATCH /tren>>
+
+' ----------------------------------------------------------
+' Q. FRONTEND: WebSocket Service se conecta al backend WS
+' ----------------------------------------------------------
+WebSocketServiceJS ..> WebSocketConfig : <<STOMP /ws-tpa>>
+
+' ----------------------------------------------------------
+' R. FRONTEND: Vistas HTML cargan Controladores JS
+' ----------------------------------------------------------
+index_html --> LoginController : <<carga>>
+mapaadmin_html --> MapaControllerJS : <<carga>>
+mapaadmin_html --> LogoutController : <<carga>>
+mapaadmin_html --> EstacionControllerJS : <<carga>>
+mapaadmin_html --> PuestosControllerJS : <<carga>>
+mapaadmin_html --> DisponibilidadControllerJS : <<carga>>
+mapaoperador_html --> MapaControllerJS : <<carga>>
+mapaoperador_html --> LogoutController : <<carga>>
+mapaoperador_html --> PuestosControllerJS : <<carga>>
+mapaoperador_html --> DisponibilidadControllerJS : <<carga>>
+mapasocio_html --> MapaControllerJS : <<carga>>
+mapasocio_html --> LogoutController : <<carga>>
+mapasocio_html --> DisponibilidadControllerJS : <<carga>>
+mapavip_html --> MapaControllerJS : <<carga>>
+mapavip_html --> LogoutController : <<carga>>
+mapavip_html --> DisponibilidadControllerJS : <<carga>>
+
+' ----------------------------------------------------------
+' S. FRONTEND: Modelos JS usados por Controladores/Servicios
+' ----------------------------------------------------------
+MapaControllerJS ..> EstacionJS : <<instancia>>
+MapaControllerJS ..> TrenJS : <<instancia>>
+LoginController ..> UsuarioJS : <<instancia>>
+
+@enduml
