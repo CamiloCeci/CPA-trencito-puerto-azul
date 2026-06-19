@@ -130,9 +130,11 @@ try:
             print(f"Enviando ubicación: {ubicacion['id']}")
             lon = ubicacion["longitude"]
             lat = ubicacion["latitude"]
-            urllib.request.urlopen(f"http://localhost:8080/api/v1/gps/{lat}/{lon}/")
+            urllib.request.urlopen(
+                f"http://openclaw.telemo.com.ve:8030/api/v1/gps/{lat}/{lon}/"
+            )
             print(
-                f"Request GET enviado (http://localhost:8080/api/v1/gps/{lat}/{lon}/)\nCon latitud: {lat}\nCon longitud: {lon}"
+                f"Request GET enviado (http://openclaw.telemo.com.ve:8030/api/v1/gps/{lat}/{lon}/)\nCon latitud: {lat}\nCon longitud: {lon}"
             )
             time.sleep(5)
 except KeyboardInterrupt:

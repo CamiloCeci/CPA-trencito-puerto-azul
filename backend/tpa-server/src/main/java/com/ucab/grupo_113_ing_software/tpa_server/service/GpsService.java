@@ -22,8 +22,8 @@ public class GpsService {
     }
 
     public CoordenadaGps getCoordenadas() {
-        List<CoordenadaGps> coords = gpsCoordenadasRepository.findAll();
-        return coords.getFirst();
+        Optional<CoordenadaGps> coords = gpsCoordenadasRepository.findById((long) 1);
+        return coords.orElse(null);
     }
 
     public CoordenadaGps createCoordenadaas(double latitude, double longitude, double speed) {
@@ -40,8 +40,14 @@ public class GpsService {
             gpsCoordenadasRepository.save(coords.get());
             simpMessagingTemplate.convertAndSend("/topic/trencito/posicion", coords.get());
             return coords.get();
+        } else {
+            CoordenadaGps coord =  new CoordenadaGps();
+            coord.setLatitude(latitude);
+            coord.setLongitude(longitude);
+            gpsCoordenadasRepository.save(coord);
+            simpMessagingTemplate.convertAndSend("/topic/trencito/posicion", coord);
+            return coord;
         }
-        return null;
     }
 
     public CoordenadaGps updateCoordenadas(double latitude, double longitude, double speed) {

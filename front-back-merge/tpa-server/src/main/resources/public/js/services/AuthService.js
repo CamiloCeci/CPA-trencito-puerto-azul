@@ -1,4 +1,4 @@
-const AUTH_URL = 'http://localhost:8080/api/v1/users/login/';
+const AUTH_URL = '/api/v1/users/login/';
 
 export const AuthService = {
     async login(cedula, clave) {

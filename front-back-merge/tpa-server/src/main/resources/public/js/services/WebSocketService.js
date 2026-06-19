@@ -2,7 +2,7 @@ export const WebSocketService = {
     stompClient: null,
 
     connect(onEstacionUpdate, onTrenUpdate) {
-        const socket = new SockJS('http://localhost:8080/ws-tpa');
+        const socket = new SockJS('/ws-tpa');
         this.stompClient = Stomp.over(socket);
         this.stompClient.debug = null;
 

@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/api/v1/disponibilidad';
+const BASE_URL = '/api/v1/disponibilidad';
 
 export const DisponibilidadController = {
     serviceStartTime: "07:00",

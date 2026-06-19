@@ -44,7 +44,7 @@ export const PuestosController = {
 
     async confirmarCambiosPuestos() {
         try {
-            const res = await fetch('http://localhost:8080/api/v1/tren/', {
+            const res = await fetch('/api/v1/tren/', {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ puestos: this.tempSeats })

@@ -1,4 +1,4 @@
-const BASE_URL = 'http://localhost:8080/api/v1';
+const BASE_URL = '/api/v1';
 
 export const ColaService = {
     async unirseACola(socioId, estacionId) {
@@ -7,11 +7,11 @@ export const ColaService = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ socioId, estacionId })
         });
-        
+
         if (response.status === 409) {
             throw new Error('No te puedes unir a una estación si ya estás en otra.');
         }
-        
+
         if (!response.ok) throw new Error('Error al unirse a la cola');
         return await response.json();
     },
