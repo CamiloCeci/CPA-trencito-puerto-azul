@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -79,6 +80,18 @@ public class ColaVirtualController {
         return ResponseEntity.ok(colaVirtualService.findByEstacionId(estacionId));
     }
 
+    @GetMapping("/estacion/{estacionId}/reset")
+    public ResponseEntity<?> resetByEstacionId(@PathVariable Long estacionId) {
+        try {
+            colaVirtualService.resetColaEstacion(estacionId);
+            return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException ent) {
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(ent.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        }
+    }
+
 
     @GetMapping("/esperando/")
     public ResponseEntity<List<ColaVirtual>> getAllEsperando() {
@@ -119,11 +132,13 @@ public class ColaVirtualController {
         if (est.isPresent() && est.get().getEstacion() != null) {
             estacionService.bajarContadorPersonasEnCola(est.get().getEstacion().getId());
         }
-        Map<String, Object> response = makeResponse(est, "Asignación eliminada exitosamente.");
-        colaVirtualService.eliminarAsignacion(socioId);
-        return ResponseEntity.ok(response);
+        Map<String, Object> response;
+        if (colaVirtualService.eliminarAsignacion(socioId)) {
+            response = makeResponse(est, "Asignación eliminada exitosamente.");
+            return ResponseEntity.ok(response);
+        } else
+            return ResponseEntity.internalServerError().body("Ocurrió un error, intente más tarde.");
     }
-
 
     private Map<String, Object> makeResponse(Object o, String msg) {
         Map<String, Object> response = new HashMap<>();

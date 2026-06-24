@@ -4,6 +4,7 @@ import com.ucab.grupo_113_ing_software.tpa_server.model.Estacion;
 import com.ucab.grupo_113_ing_software.tpa_server.model.Socio;
 import com.ucab.grupo_113_ing_software.tpa_server.model.ColaVirtual;
 import com.ucab.grupo_113_ing_software.tpa_server.repository.ColaVirtualRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,8 +63,24 @@ public class ColaVirtualService {
     }
 
     @Transactional
-    public void eliminarAsignacion(Long socioId) {
-        colaVirtualRepository.deleteBySocioId(socioId);
+    public boolean eliminarAsignacion(Long socioId) {
+        try {
+            colaVirtualRepository.deleteBySocioId(socioId);
+            return true;
+        }
+        catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    @Transactional
+    public void resetColaEstacion(long id) {
+            List<ColaVirtual> cv = colaVirtualRepository.findByEstacionId(id);
+            if (cv.isEmpty()) {
+                throw new EntityNotFoundException("No hay nadie en la cola.");
+            }
+            for (ColaVirtual cvv : cv)
+                cvv.setEstacion(null);
     }
 
     public List<ColaVirtual> getAll() {
