@@ -59,6 +59,13 @@ public class Estacion {
         this.id = id;
     }
 
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
 
     public void subirContador() {
         this.contadorPersonasEnCola++;

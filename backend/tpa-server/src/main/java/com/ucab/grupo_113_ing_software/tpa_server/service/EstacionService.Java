@@ -2,15 +2,16 @@ package com.ucab.grupo_113_ing_software.tpa_server.service;
 
 import com.ucab.grupo_113_ing_software.tpa_server.model.Estacion;
 import com.ucab.grupo_113_ing_software.tpa_server.model.ColaVirtual;
+import com.ucab.grupo_113_ing_software.tpa_server.dto.EstacionUpdateDTO;
 import com.ucab.grupo_113_ing_software.tpa_server.repository.EstacionRepository;
 import com.ucab.grupo_113_ing_software.tpa_server.repository.ColaVirtualRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import com.ucab.grupo_113_ing_software.tpa_server.dto.EstacionUpdateDTO;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class EstacionService {
@@ -37,7 +38,57 @@ public class EstacionService {
         return estacionRepository.findAll();
     }
 
+    public Estacion actualizarEstacionParcial(Long id, Map<String, Object> cambios) {
+        Estacion estacion = estacionRepository.findById(id).orElse(null);
+        if (estacion == null) {
+            return null;
+        }
 
+        String nombre = cambios.get("nombre") != null ? cambios.get("nombre").toString() : null;
+        Object latitude = cambios.get("latitude");
+        Object longitude = cambios.get("longitude");
+
+        boolean hasNombre = nombre != null;
+        boolean hasLatitude = latitude != null;
+        boolean hasLongitude = longitude != null;
+        int fieldCount = (hasNombre ? 1 : 0) + (hasLatitude ? 1 : 0) + (hasLongitude ? 1 : 0);
+
+        if (hasNombre && fieldCount != 1) {
+            return null;
+        }
+        if (!hasNombre && !(fieldCount == 1 || (hasLatitude && hasLongitude))) {
+            return null;
+        }
+
+        if (hasNombre) {
+            estacion.setNombre(nombre);
+        } else if (hasLatitude && hasLongitude) {
+            if (latitude instanceof Number) {
+                estacion.setLatitude(((Number) latitude).doubleValue());
+            } else {
+                estacion.setLatitude(Double.parseDouble(latitude.toString()));
+            }
+            if (longitude instanceof Number) {
+                estacion.setLongitude(((Number) longitude).doubleValue());
+            } else {
+                estacion.setLongitude(Double.parseDouble(longitude.toString()));
+            }
+        } else if (hasLatitude) {
+            if (latitude instanceof Number) {
+                estacion.setLatitude(((Number) latitude).doubleValue());
+            } else {
+                estacion.setLatitude(Double.parseDouble(latitude.toString()));
+            }
+        } else if (hasLongitude) {
+            if (longitude instanceof Number) {
+                estacion.setLongitude(((Number) longitude).doubleValue());
+            } else {
+                estacion.setLongitude(Double.parseDouble(longitude.toString()));
+            }
+        }
+
+        return estacionRepository.save(estacion);
+    }
 
     @Transactional
     public Estacion eliminarEstacion(Long id) {

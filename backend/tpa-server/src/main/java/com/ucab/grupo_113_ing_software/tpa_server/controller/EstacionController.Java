@@ -45,6 +45,15 @@ public class EstacionController {
         return ResponseEntity.ok(response);
     }
 
+    @PatchMapping("/{id}/")
+    public ResponseEntity<?> actualizarEstacionParcial(@PathVariable Long id, @RequestBody Map<String, Object> cambios) {
+        Estacion updated = estacionService.actualizarEstacionParcial(id, cambios);
+        if (updated == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updated);
+    }
+
     private Map<String, Object> makeResponse(Estacion estacion, String msg) {
         Map<String, Object> response = new HashMap<>();
         response.put("msg", msg);
