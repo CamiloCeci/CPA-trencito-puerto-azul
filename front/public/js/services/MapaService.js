@@ -30,6 +30,16 @@ export const MapaService = {
         return await response.json();
     },
 
+    async actualizarEstacion(id, payload) {
+        const response = await fetch(`${BASE_URL}/estaciones/${id}/`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        if (!response.ok) throw new Error('Error al actualizar estación');
+        return await response.json();
+    },
+
     async eliminarEstacion(id) {
         const response = await fetch(`${BASE_URL}/estaciones/${id}/`, {
             method: 'DELETE'

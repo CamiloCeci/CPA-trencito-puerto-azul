@@ -24,6 +24,7 @@
                 <button class="btn-sidebar" onclick="abrirModalServicio()">Modificar horario de servicio</button>
                 <button class="btn-sidebar" onclick="abrirModalPuestos()">Modificar puestos del tren</button>
                 <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalCrearEstacion();">Crear estación</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalSeleccionarEstacionParaEditar();">Editar estación</button>
                 <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalEliminarEstacion();">Eliminar estación</button>
             </div>
         </div>
@@ -173,6 +174,51 @@
                     <button class="btn-modal-delete" onclick="confirmarEliminarEstacion()">Eliminar</button>
                 </div>
             </div>
+        </div>
+
+        <div class="modal-overlay" id="selectEditStationModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Seleccionar Estación a Editar</h3>
+                <p class="modal-description">seleccione la estacion que quiere editar</p>
+                <div class="station-list-scrollable" id="editStationList"></div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('selectEditStationModal', false)">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="chooseFieldModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Seleccione el campo que quiere editar</h3>
+                <p class="modal-description">Elija si desea editar el nombre o la ubicación de la estación seleccionada.</p>
+                <input type="hidden" id="selectedEditStationId">
+                <div class="modal-actions-horizontal" style="justify-content: space-between;">
+                    <button class="btn-modal-secondary" onclick="seleccionarCampoYEditar('nombre')">Nombre</button>
+                    <button class="btn-modal-secondary" onclick="seleccionarCampoYEditar('ubicacion')">Ubicación</button>
+                </div>
+                <div style="margin-top:12px; display:flex; justify-content:center;">
+                    <button class="btn-modal-cancel" onclick="alternarModal('chooseFieldModal', false); alternarModal('selectEditStationModal', true);">Volver</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="editStationModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Editar Nombre de Estación</h3>
+                <p class="modal-description">Modifique solo el nombre de la estación seleccionada.</p>
+                <input type="hidden" id="editStationIdInput">
+                <div class="input-container-modal">
+                    <label for="editStationNameInput">Nombre</label>
+                    <input type="text" id="editStationNameInput" placeholder="Ej: Estación Piscina" autocomplete="off">
+                </div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('editStationModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="guardarEdicionEstacion()">Guardar</button>
+                </div>
+            </div>
+        </div>
+        <div id="locationEditMessage" style="display:none; position:absolute; top:18px; right:18px; z-index:1200; background:#ffffffcc; border:1px solid #ffc107; color:#1f2937; padding:12px 16px; border-radius:12px; font-weight:600; box-shadow:0 6px 16px rgba(0,0,0,0.16);">
+            Seleccione en que parte del mapa va a ser la nueva ubicacion
         </div>
 
         <!-- Parte del HTML añadido en mapaadmin.html -->

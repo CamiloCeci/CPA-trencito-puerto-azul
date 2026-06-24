@@ -9,6 +9,7 @@ export const MapaController = {
     leafletMarkers: {},
     trencitoMarker: null,
     isCreatingStation: false,
+    isEditingLocation: false,
     userWaitingStationId: null,
 
     trenIconoPersonalizado: L.divIcon({
@@ -142,9 +143,52 @@ export const MapaController = {
     alHacerClicEnMapa(e) {
         if (this.isCreatingStation) {
             this.manejarCrearEstacion(e.latlng);
+        } else if (this.isEditingLocation) {
+            this.manejarEditarUbicacion(e.latlng);
         } else {
             const sidebar = document.getElementById('leftSidebar');
             if (sidebar) sidebar.classList.remove('open');
+        }
+    },
+
+    async iniciarEditarUbicacion(id) {
+        this.editarEstacionId = id;
+        this.isEditingLocation = true;
+        const mapEl = document.getElementById('map');
+        if (mapEl) mapEl.style.cursor = 'crosshair';
+        const message = document.getElementById('locationEditMessage');
+        if (message) message.style.display = 'block';
+        window.alternarModal('selectEditStationModal', false);
+        window.alternarModal('chooseFieldModal', false);
+    },
+
+    async manejarEditarUbicacion(latlng) {
+        const id = this.editarEstacionId;
+        if (!id) return;
+        this.isEditingLocation = false;
+
+        const message = document.getElementById('locationEditMessage');
+        if (message) message.style.display = 'none';
+        const mapEl = document.getElementById('map');
+        if (mapEl) mapEl.style.cursor = '';
+
+        try {
+            const updated = await MapaService.actualizarEstacion(id, {
+                latitude: latlng.lat,
+                longitude: latlng.lng
+            });
+            this.stationData[id].coords = [updated.latitude, updated.longitude];
+            if (this.leafletMarkers[id]) {
+                this.leafletMarkers[id].setLatLng([updated.latitude, updated.longitude]);
+                const el = this.leafletMarkers[id].getElement();
+                if (el) {
+                    const tooltip = el.querySelector('.tooltip');
+                    if (tooltip) tooltip.innerText = updated.nombre;
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            alert('No se pudo actualizar la ubicación de la estación');
         }
     },
 
