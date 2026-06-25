@@ -20,18 +20,45 @@ public class EstacionController {
         this.estacionService = estacionService;
     }
 
-    // JSON para esta ruta: { "nombre": "Prueba", "latitude": 123, "longitude": 123 }
+    // JSON para esta ruta: { "nombre": "Prueba", "latitude": 123, "longitude": 123}
 
     @PostMapping("/")
-    public ResponseEntity<Estacion> crearEstacion(@RequestBody Estacion estacion) {
-        Estacion saved = estacionService.crearEstacion(estacion);
-        return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+    public ResponseEntity<?> crearEstacion(@RequestBody Estacion estacion) {
+        try {
+            Estacion saved = estacionService.crearEstacion(estacion);
+            return ResponseEntity.status(HttpStatus.CREATED).body(saved);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        }
     }
 
     @GetMapping("/")
     public ResponseEntity<List<Estacion>> getAllEstaciones() {
         List<Estacion> estaciones = estacionService.getAllEstaciones();
         return ResponseEntity.ok(estaciones);
+    }
+
+    // Actualización parcial: solo nombre O solo ubicación (lat + lng)
+    // JSON nombre:     { "nombre": "Nuevo Nombre" }
+    // JSON ubicación:  { "latitude": 10.62, "longitude": -66.74 }
+    @PatchMapping("/{id}/")
+    public ResponseEntity<?> actualizarEstacion(@PathVariable Long id,
+            @RequestBody Map<String, Object> cambios) {
+        try {
+            Estacion updated = estacionService.actualizarEstacionParcial(id, cambios);
+            if (updated == null) {
+                Map<String, String> errorResponse = new HashMap<>();
+                errorResponse.put("error", "Estación no encontrada o payload inválido.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+            }
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+        }
     }
 
     @DeleteMapping("/{id}/")
@@ -43,15 +70,6 @@ public class EstacionController {
 
         Map<String, Object> response = makeResponse(estacion, "Estación eliminada exitosamente.");
         return ResponseEntity.ok(response);
-    }
-
-    @PatchMapping("/{id}/")
-    public ResponseEntity<?> actualizarEstacionParcial(@PathVariable Long id, @RequestBody Map<String, Object> cambios) {
-        Estacion updated = estacionService.actualizarEstacionParcial(id, cambios);
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(updated);
     }
 
     private Map<String, Object> makeResponse(Estacion estacion, String msg) {

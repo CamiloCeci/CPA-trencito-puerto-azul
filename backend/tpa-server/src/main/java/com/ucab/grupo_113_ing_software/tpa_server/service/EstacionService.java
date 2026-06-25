@@ -20,13 +20,17 @@ public class EstacionService {
     private final SimpMessagingTemplate messagingTemplate;
 
     @Autowired
-    public EstacionService(EstacionRepository estacionRepository, ColaVirtualRepository colaVirtualRepository, SimpMessagingTemplate messagingTemplate) {
+    public EstacionService(EstacionRepository estacionRepository, ColaVirtualRepository colaVirtualRepository,
+            SimpMessagingTemplate messagingTemplate) {
         this.estacionRepository = estacionRepository;
         this.colaVirtualRepository = colaVirtualRepository;
         this.messagingTemplate = messagingTemplate;
     }
 
     public Estacion crearEstacion(Estacion estacion) {
+        if (estacionRepository.existsByNombre(estacion.getNombre())) {
+            throw new IllegalArgumentException("Ya existe una estación con este ID.");
+        }
         return estacionRepository.save(estacion);
     }
 
@@ -44,51 +48,36 @@ public class EstacionService {
             return null;
         }
 
-        String nombre = cambios.get("nombre") != null ? cambios.get("nombre").toString() : null;
+        String nombre = cambios.get("nombre") != null ? cambios.get("nombre").toString().trim() : null;
         Object latitude = cambios.get("latitude");
         Object longitude = cambios.get("longitude");
 
-        boolean hasNombre = nombre != null;
-        boolean hasLatitude = latitude != null;
-        boolean hasLongitude = longitude != null;
-        int fieldCount = (hasNombre ? 1 : 0) + (hasLatitude ? 1 : 0) + (hasLongitude ? 1 : 0);
-
-        if (hasNombre && fieldCount != 1) {
-            return null;
-        }
-        if (!hasNombre && !(fieldCount == 1 || (hasLatitude && hasLongitude))) {
-            return null;
-        }
-
-        if (hasNombre) {
+        // Caso 1: Solo cambiar nombre
+        if (nombre != null && !nombre.isEmpty()) {
+            // Verificar que no exista otra estación con ese nombre (ignorando la actual)
+            if (estacionRepository.existsByNombreAndIdNot(nombre, id)) {
+                throw new IllegalArgumentException("Ya existe una estación con el nombre \"" + nombre + "\".");
+            }
             estacion.setNombre(nombre);
-        } else if (hasLatitude && hasLongitude) {
-            if (latitude instanceof Number) {
-                estacion.setLatitude(((Number) latitude).doubleValue());
-            } else {
-                estacion.setLatitude(Double.parseDouble(latitude.toString()));
-            }
-            if (longitude instanceof Number) {
-                estacion.setLongitude(((Number) longitude).doubleValue());
-            } else {
-                estacion.setLongitude(Double.parseDouble(longitude.toString()));
-            }
-        } else if (hasLatitude) {
-            if (latitude instanceof Number) {
-                estacion.setLatitude(((Number) latitude).doubleValue());
-            } else {
-                estacion.setLatitude(Double.parseDouble(latitude.toString()));
-            }
-        } else if (hasLongitude) {
-            if (longitude instanceof Number) {
-                estacion.setLongitude(((Number) longitude).doubleValue());
-            } else {
-                estacion.setLongitude(Double.parseDouble(longitude.toString()));
-            }
+        }
+        // Caso 2: Solo cambiar ubicación (lat + lng juntos)
+        else if (latitude != null && longitude != null) {
+            double lat = (latitude instanceof Number)
+                    ? ((Number) latitude).doubleValue()
+                    : Double.parseDouble(latitude.toString());
+            double lng = (longitude instanceof Number)
+                    ? ((Number) longitude).doubleValue()
+                    : Double.parseDouble(longitude.toString());
+            estacion.setLatitude(lat);
+            estacion.setLongitude(lng);
+        } else {
+            // Payload inválido: no se proveyó ningún campo editable
+            return null;
         }
 
         return estacionRepository.save(estacion);
     }
+
 
     @Transactional
     public Estacion eliminarEstacion(Long id) {
@@ -109,7 +98,8 @@ public class EstacionService {
         if (estacion != null) {
             estacion.subirContador();
             Estacion saved = estacionRepository.save(estacion);
-            messagingTemplate.convertAndSend("/topic/estaciones", new EstacionUpdateDTO(saved.getId(), saved.getContador()));
+            messagingTemplate.convertAndSend("/topic/estaciones",
+                    new EstacionUpdateDTO(saved.getId(), saved.getContador()));
             return saved;
         }
         return null;
@@ -120,7 +110,8 @@ public class EstacionService {
         if (estacion != null) {
             estacion.bajarContador();
             Estacion saved = estacionRepository.save(estacion);
-            messagingTemplate.convertAndSend("/topic/estaciones", new EstacionUpdateDTO(saved.getId(), saved.getContador()));
+            messagingTemplate.convertAndSend("/topic/estaciones",
+                    new EstacionUpdateDTO(saved.getId(), saved.getContador()));
             return saved;
         }
         return null;

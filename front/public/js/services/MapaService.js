@@ -36,7 +36,14 @@ export const MapaService = {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        if (!response.ok) throw new Error('Error al actualizar estación');
+        if (!response.ok) {
+            let errorMsg = `Error ${response.status} al actualizar estación`;
+            try {
+                const errBody = await response.json();
+                if (errBody && errBody.error) errorMsg = errBody.error;
+            } catch (_) {}
+            throw new Error(errorMsg);
+        }
         return await response.json();
     },
 

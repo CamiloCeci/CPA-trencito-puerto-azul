@@ -91,7 +91,7 @@ export const MapaController = {
 
             const initialSeats = await MapaService.obtenerPuestosTren();
             this.alActualizarTren(initialSeats);
-            
+
         } catch (err) {
             console.error('Error al cargar datos:', err);
         }
@@ -100,12 +100,12 @@ export const MapaController = {
     crearMarcadorEstacion(id, data) {
         const customDiv = document.createElement('div');
         customDiv.className = 'station-marker-leaflet';
-        
+
         const userStr = sessionStorage.getItem('usuarioLogueado');
         const user = userStr ? JSON.parse(userStr) : null;
         const isStaff = user && (user.rol === 'ADMINISTRADOR' || user.rol === 'OPERADOR');
         const isSocioVip = user && (user.rol === 'SOCIO' || user.rol === 'VIP');
-        
+
         // El badge rojo con números solo para Administrador u Operador
         const showBadge = isStaff && data.wait > 0;
         // El indicador azul solo para el Socio/VIP en su estación actual
@@ -156,6 +156,12 @@ export const MapaController = {
         this.isEditingLocation = true;
         const mapEl = document.getElementById('map');
         if (mapEl) mapEl.style.cursor = 'crosshair';
+
+        // Mostrar el nombre de la estación en el mensaje flotante
+        const stationNombre = (this.stationData[id] && this.stationData[id].name) || '';
+        const nameSpan = document.getElementById('locationEditStationName');
+        if (nameSpan) nameSpan.textContent = stationNombre;
+
         const message = document.getElementById('locationEditMessage');
         if (message) message.style.display = 'block';
         window.alternarModal('selectEditStationModal', false);
@@ -195,7 +201,7 @@ export const MapaController = {
     async manejarCrearEstacion(latlng) {
         const nameInput = document.getElementById('newStationNameInput');
         const name = nameInput ? nameInput.value.trim() : 'Nueva Estación';
-        
+
         try {
             const newEst = await MapaService.crearEstacion(name, latlng.lat, latlng.lng);
             this.stationData[newEst.id] = { name: newEst.nombre, wait: 0, coords: [newEst.latitude, newEst.longitude] };
@@ -252,7 +258,7 @@ export const MapaController = {
             const sc = document.getElementById('seatsCounter');
             if (sc) sc.innerText = puestos;
         }
-        
+
         if (data.latitude || data.lat) {
             this.actualizarPosicionTren(data);
         }
