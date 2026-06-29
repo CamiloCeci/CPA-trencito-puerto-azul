@@ -2,11 +2,9 @@ package com.ucab.grupo_113_ing_software.tpa_server.controller;
 
 import com.ucab.grupo_113_ing_software.tpa_server.dto.LoginPayload;
 import com.ucab.grupo_113_ing_software.tpa_server.model.Usuario;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.ucab.grupo_113_ing_software.tpa_server.service.UsuarioService;
-import com.ucab.grupo_113_ing_software.tpa_server.dto.LoginPayload;
 
 import java.util.List;
 

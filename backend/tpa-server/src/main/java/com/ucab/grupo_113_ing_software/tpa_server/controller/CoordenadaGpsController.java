@@ -1,7 +1,6 @@
 package com.ucab.grupo_113_ing_software.tpa_server.controller;
 
 import com.ucab.grupo_113_ing_software.tpa_server.model.CoordenadaGps;
-import com.ucab.grupo_113_ing_software.tpa_server.repository.GpsCoordenadasRepository;
 import com.ucab.grupo_113_ing_software.tpa_server.service.GpsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,11 +9,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/gps")
 @CrossOrigin(origins = "*")
 public class CoordenadaGpsController {
-    private final GpsCoordenadasRepository gpsCoordenadasRepository;
+
     private final GpsService gpsService;
 
-    public CoordenadaGpsController(GpsService gpsService, GpsCoordenadasRepository gpsCoordenadasRepository) {
-        this.gpsCoordenadasRepository = gpsCoordenadasRepository;
+    public CoordenadaGpsController(GpsService gpsService) {
         this.gpsService = gpsService;
     }
 

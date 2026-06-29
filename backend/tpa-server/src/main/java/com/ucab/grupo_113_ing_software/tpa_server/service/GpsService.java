@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -41,7 +40,7 @@ public class GpsService {
             simpMessagingTemplate.convertAndSend("/topic/trencito/posicion", coords.get());
             return coords.get();
         } else {
-            CoordenadaGps coord =  new CoordenadaGps();
+            CoordenadaGps coord = new CoordenadaGps();
             coord.setLatitude(latitude);
             coord.setLongitude(longitude);
             gpsCoordenadasRepository.save(coord);

@@ -31,6 +31,9 @@ public class CoordenadaGps {
         this.timestamp = timestamp;
     }
 
+    public CoordenadaGps() {
+    }
+
     public CoordenadaGps(double latitude, double longitude, double speed) {
         this.latitude = latitude;
         this.longitude = longitude;
