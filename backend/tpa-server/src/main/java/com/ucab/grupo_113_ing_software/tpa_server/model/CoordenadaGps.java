@@ -38,9 +38,6 @@ public class CoordenadaGps {
         timestamp = LocalDateTime.now();
     }
 
-    public CoordenadaGps() {
-    }
-
     public CoordenadaGps(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
