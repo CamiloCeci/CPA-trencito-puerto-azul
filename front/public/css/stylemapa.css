@@ -224,10 +224,12 @@ html {
 }
 
 .sidebar-content {
-    padding: 40px 24px;
+    padding: 40px 24px 120px 24px;
     display: flex;
     flex-direction: column;
     gap: 24px;
+    height: 100%;
+    overflow-y: auto;
 }
 
 .sidebar-content h2 {
@@ -456,6 +458,13 @@ html {
 
 .error-text-modal {
     color: #ef4444;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 16px;
+}
+
+.success-text-modal {
+    color: #10b981;
     font-size: 12px;
     font-weight: 600;
     margin-bottom: 16px;

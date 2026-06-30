@@ -278,7 +278,14 @@ export const MapaController = {
     },
 
     configurarEventos() {
-        // ... (more event listeners could go here)
+        const sidebarContent = document.querySelector('.sidebar-content');
+        const toggleBtn = document.querySelector('.toggle-btn');
+        if (sidebarContent && toggleBtn) {
+            sidebarContent.addEventListener('scroll', (e) => {
+                const scrollTop = e.target.scrollTop;
+                toggleBtn.style.top = `${20 - scrollTop}px`;
+            });
+        }
     }
 };
 

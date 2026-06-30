@@ -39,10 +39,13 @@ export const RutaController = {
 
         try {
             await RutaService.crearRuta(nombre, validacion.ids);
-            window.alternarModal('createRutaModal', false);
-            alert('Ruta creada exitosamente.');
+            this.mostrarMensaje(errMsg, 'Ruta creada exitosamente.', true);
+            setTimeout(() => {
+                window.alternarModal('createRutaModal', false);
+                if (errMsg) errMsg.style.display = 'none';
+            }, 1500);
         } catch (error) {
-            this.mostrarError(errMsg, error.message);
+            this.mostrarMensaje(errMsg, error.message, false);
         }
     },
 
@@ -87,14 +90,18 @@ export const RutaController = {
         const selected = document.querySelector('input[name="rutaToDelete"]:checked');
         if (!selected) return;
 
+        const errMsg = document.getElementById('deleteRutaErrorMsg');
         const id = selected.value;
         try {
             await RutaService.eliminarRuta(id);
-            window.alternarModal('deleteRutaModal', false);
-            alert('Ruta eliminada exitosamente.');
+            this.mostrarMensaje(errMsg, 'Ruta eliminada exitosamente.', true);
+            setTimeout(() => {
+                window.alternarModal('deleteRutaModal', false);
+                if (errMsg) errMsg.style.display = 'none';
+            }, 1500);
         } catch (err) {
             console.error(err);
-            alert('Error al eliminar la ruta: ' + err.message);
+            this.mostrarMensaje(errMsg, 'Error al eliminar la ruta: ' + err.message, false);
         }
     },
 
@@ -179,10 +186,13 @@ export const RutaController = {
 
         try {
             await RutaService.editarRuta(id, nombre, validacion.ids);
-            window.alternarModal('editRutaModal', false);
-            alert('Ruta editada exitosamente.');
+            this.mostrarMensaje(errMsg, 'Ruta editada exitosamente.', true);
+            setTimeout(() => {
+                window.alternarModal('editRutaModal', false);
+                if (errMsg) errMsg.style.display = 'none';
+            }, 1500);
         } catch (error) {
-            this.mostrarError(errMsg, error.message);
+            this.mostrarMensaje(errMsg, error.message, false);
         }
     },
 
@@ -226,14 +236,18 @@ export const RutaController = {
         const selected = document.querySelector('input[name="rutaToActivate"]:checked');
         if (!selected) return;
 
+        const errMsg = document.getElementById('activeRutaErrorMsg');
         const id = selected.value;
         try {
             await RutaService.activarRuta(id);
-            window.alternarModal('activeRutaModal', false);
-            alert('Ruta activada exitosamente.');
+            this.mostrarMensaje(errMsg, 'Ruta activada exitosamente.', true);
+            setTimeout(() => {
+                window.alternarModal('activeRutaModal', false);
+                if (errMsg) errMsg.style.display = 'none';
+            }, 1500);
         } catch (err) {
             console.error(err);
-            alert('Error al activar la ruta: ' + err.message);
+            this.mostrarMensaje(errMsg, 'Error al activar la ruta: ' + err.message, false);
         }
     },
 
@@ -272,13 +286,18 @@ export const RutaController = {
         return { valido: true, ids };
     },
 
-    mostrarError(errEl, mensaje) {
+    mostrarMensaje(errEl, mensaje, esExito = false) {
         if (errEl) {
             errEl.textContent = mensaje;
+            errEl.className = esExito ? 'success-text-modal' : 'error-text-modal';
             errEl.style.display = 'block';
         } else {
             alert(mensaje);
         }
+    },
+
+    mostrarError(errEl, mensaje) {
+        this.mostrarMensaje(errEl, mensaje, false);
     }
 };
 

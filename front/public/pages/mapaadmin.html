@@ -306,6 +306,7 @@
                 <h3>Eliminar Ruta</h3>
                 <p class="modal-description">Seleccione la ruta que desea remover permanentemente del sistema:</p>
                 <div class="station-list-scrollable" id="deleteRutaList"></div>
+                <div id="deleteRutaErrorMsg" class="error-text-modal" style="display: none;"></div>
                 <div class="modal-actions-horizontal">
                     <button class="btn-modal-cancel" onclick="alternarModal('deleteRutaModal', false)">Cancelar</button>
                     <button class="btn-modal-delete" onclick="confirmarEliminarRuta()">Eliminar</button>
@@ -350,6 +351,7 @@
                 <h3>Elegir Ruta Activa</h3>
                 <p class="modal-description">Seleccione la ruta que desea establecer como activa:</p>
                 <div class="station-list-scrollable" id="activeRutaList"></div>
+                <div id="activeRutaErrorMsg" class="error-text-modal" style="display: none;"></div>
                 <div class="modal-actions-horizontal">
                     <button class="btn-modal-cancel" onclick="alternarModal('activeRutaModal', false)">Cancelar</button>
                     <button class="btn-modal-confirm" onclick="confirmarRutaActiva()">Confirmar</button>
