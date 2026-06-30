@@ -26,55 +26,61 @@ public class RutaController {
         return ResponseEntity.ok(rutaService.obtenerTodas());
     }
 
-    // Obtener la ruta activa
-    @GetMapping("/activa")
-    public ResponseEntity<Ruta> obtenerActiva() {
-        return rutaService.obtenerActiva()
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
+    /*
+     * Da error por el .orElse, revisar si hace falta
+     * 
+     * // Obtener la ruta activa
+     * 
+     * @GetMapping("/activa")
+     * public ResponseEntity<?> obtenerActiva() {
+     * return rutaService.obtenerActiva()
+     * .map(ResponseEntity::ok)
+     * .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).
+     * body("No hay una ruta activa en este momento."));
+     * }
+     */
 
     // Crear nueva ruta
     @PostMapping("/")
-    public ResponseEntity<Ruta> crearRuta(@RequestBody RutaDTO rutaDTO) {
+    public ResponseEntity<?> crearRuta(@RequestBody RutaDTO rutaDTO) {
         try {
             Ruta nuevaRuta = rutaService.crearRuta(rutaDTO);
             return ResponseEntity.status(HttpStatus.CREATED).body(nuevaRuta);
         } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 
     // Activar una ruta
     @PutMapping("/{id}/activar")
-    public ResponseEntity<Ruta> activarRuta(@PathVariable Long id) {
+    public ResponseEntity<?> activarRuta(@PathVariable Long id) {
         try {
             Ruta rutaActiva = rutaService.activarRuta(id);
             return ResponseEntity.ok(rutaActiva);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
     // Eliminar una ruta
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarRuta(@PathVariable Long id) {
+    public ResponseEntity<?> eliminarRuta(@PathVariable Long id) {
         try {
             rutaService.eliminarRuta(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 
     // Editar una ruta
     @PutMapping("/{id}")
-    public ResponseEntity<Ruta> editarRuta(@PathVariable Long id, @RequestBody RutaDTO rutaDTO) {
+    public ResponseEntity<?> editarRuta(@PathVariable Long id, @RequestBody RutaDTO rutaDTO) {
         try {
             Ruta rutaActualizada = rutaService.editarRuta(id, rutaDTO);
             return ResponseEntity.ok(rutaActualizada);
         } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
     }
 }

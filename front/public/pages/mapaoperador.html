@@ -29,6 +29,7 @@
             <div class="sidebar-content">
                 <h2>Gestiones</h2>
                 <button class="btn-sidebar" onclick="abrirModalPuestos()">Modificar puestos del tren</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalElegirRutaActiva();">Elegir ruta activa</button>
             </div>
         </div>
 
@@ -160,6 +161,18 @@
             </div>
         </div>
 
+        <div class="modal-overlay" id="activeRutaModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Elegir Ruta Activa</h3>
+                <p class="modal-description">Seleccione la ruta que desea establecer como activa:</p>
+                <div class="station-list-scrollable" id="activeRutaList"></div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('activeRutaModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmarRutaActiva()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
         <button class="btn-logout">
             <img class="logout-icon" src="../assets/log-out-1-svgrepo-com.svg" alt="Salir">
             <span>Salir</span>
@@ -214,6 +227,7 @@
     <script type="module" src="../js/controllers/ColaController.js"></script>
     <script type="module" src="../js/controllers/DisponibilidadController.js"></script>
     <script type="module" src="../js/controllers/PuestosController.js"></script>
+    <script type="module" src="../js/controllers/RutaController.js"></script>
     <script type="module" src="../js/controllers/LogoutController.js"></script>
 </body>
 </html>

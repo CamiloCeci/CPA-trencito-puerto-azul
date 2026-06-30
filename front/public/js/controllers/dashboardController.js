@@ -1,6 +1,6 @@
-// dashboardController.js 🎮
+// dashboardController.js
 
-// 1. El Portero: Revisa la sesión apenas carga la página 💂‍♂️
+// Revisa la sesión apenas carga la página
 function verificarSesion() {
     const datosGuardados = sessionStorage.getItem('usuarioLogueado');
 
@@ -18,7 +18,7 @@ function verificarSesion() {
 // Ejecutamos la verificación automáticamente
 verificarSesion();
 
-// 2. Botón Salir: Limpia todo y nos expulsa 🚪
+// Botón Salir: Limpia todo y nos expulsa
 const btnSalir = document.getElementById('btnSalir');
 
 if (btnSalir) {

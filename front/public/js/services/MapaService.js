@@ -41,7 +41,7 @@ export const MapaService = {
             try {
                 const errBody = await response.json();
                 if (errBody && errBody.error) errorMsg = errBody.error;
-            } catch (_) {}
+            } catch (_) { }
             throw new Error(errorMsg);
         }
         return await response.json();

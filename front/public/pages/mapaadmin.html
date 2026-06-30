@@ -35,6 +35,10 @@
                     estación</button>
                 <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalEliminarEstacion();">Eliminar
                     estación</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalCrearRuta();">Crear ruta</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalSeleccionarRutaParaEditar();">Editar ruta</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalEliminarRuta();">Eliminar ruta</button>
+                <button class="btn-sidebar" onclick="toggleSidebar(); abrirModalElegirRutaActiva();">Elegir ruta activa</button>
             </div>
         </div>
 
@@ -278,6 +282,81 @@
                 estación</span>
         </div>
 
+        <!-- Modales de Rutas -->
+        <div class="modal-overlay" id="createRutaModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Crear Nueva Ruta</h3>
+                <p class="modal-description">Ingrese el nombre de la ruta y los IDs de las estaciones en orden separados por comas. Recuerde que la ruta es un ciclo, así que la primera y última estación deben ser iguales (Ej: 1, 2, 3, 2, 1).</p>
+                <div class="input-container-modal" style="margin-bottom: 12px;">
+                    <input type="text" id="newRutaNameInput" placeholder="Nombre (Ej: Ruta Principal)" autocomplete="off">
+                </div>
+                <div class="input-container-modal">
+                    <input type="text" id="newRutaIdsInput" placeholder="IDs Estaciones (Ej: 1, 2, 3, 1)" autocomplete="off">
+                </div>
+                <div id="createRutaErrorMsg" class="error-text-modal" style="display: none;"></div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('createRutaModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="iniciarCrearRuta()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="deleteRutaModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Eliminar Ruta</h3>
+                <p class="modal-description">Seleccione la ruta que desea remover permanentemente del sistema:</p>
+                <div class="station-list-scrollable" id="deleteRutaList"></div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('deleteRutaModal', false)">Cancelar</button>
+                    <button class="btn-modal-delete" onclick="confirmarEliminarRuta()">Eliminar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="selectEditRutaModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Seleccionar Ruta a Editar</h3>
+                <p class="modal-description">Seleccione la ruta que desea modificar:</p>
+                <div class="station-list-scrollable" id="editRutaList"></div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('selectEditRutaModal', false)">Cancelar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="editRutaModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Editar Ruta</h3>
+                <p class="modal-description">Modifique el nombre o los IDs de las estaciones (Ej: 1, 2, 3, 1).</p>
+                <input type="hidden" id="editRutaIdInput">
+                <div class="input-container-modal" style="margin-bottom: 12px;">
+                    <label for="editRutaNameInput">Nombre de la ruta</label>
+                    <input type="text" id="editRutaNameInput" placeholder="Ej: Ruta Principal" autocomplete="off">
+                </div>
+                <div class="input-container-modal">
+                    <label for="editRutaIdsInput">IDs Estaciones en orden</label>
+                    <input type="text" id="editRutaIdsInput" placeholder="Ej: 1, 2, 3, 1" autocomplete="off">
+                </div>
+                <div id="editRutaErrorMsg" class="error-text-modal" style="display: none;"></div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('editRutaModal', false); alternarModal('selectEditRutaModal', true);">← Volver</button>
+                    <button class="btn-modal-confirm" onclick="guardarEdicionRuta()">Guardar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="activeRutaModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Elegir Ruta Activa</h3>
+                <p class="modal-description">Seleccione la ruta que desea establecer como activa:</p>
+                <div class="station-list-scrollable" id="activeRutaList"></div>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('activeRutaModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmarRutaActiva()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+
         <!-- Parte del HTML añadido en mapaadmin.html -->
         <button class="btn-logout">
             <img class="logout-icon" src="../assets/log-out-1-svgrepo-com.svg" alt="Salir">
@@ -334,6 +413,7 @@
     <script type="module" src="../js/controllers/EstacionController.js"></script>
     <script type="module" src="../js/controllers/DisponibilidadController.js"></script>
     <script type="module" src="../js/controllers/PuestosController.js"></script>
+    <script type="module" src="../js/controllers/RutaController.js"></script>
     <script type="module" src="../js/controllers/LogoutController.js"></script>
 </body>
 

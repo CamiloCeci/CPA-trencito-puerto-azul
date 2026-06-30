@@ -36,6 +36,7 @@ public class OperadorController {
         return ResponseEntity.status(HttpStatus.OK).body(operadorService.findByCedula(cedula));
     }
 
+    // Cuidado: devuelve tambien a los administradores
     @GetMapping("/all/")
     public ResponseEntity<List<Operador>> getAllOperadores() {
         return ResponseEntity.status(HttpStatus.OK).body(operadorService.getAllOperadores());
