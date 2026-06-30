@@ -1,5 +1,7 @@
 package com.ucab.grupo_113_ing_software.tpa_server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 
 @Entity
@@ -10,6 +12,7 @@ public class RutaEstacion {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "ruta_id", nullable = false)
     private Ruta ruta;

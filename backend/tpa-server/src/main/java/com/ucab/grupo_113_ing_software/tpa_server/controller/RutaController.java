@@ -11,7 +11,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/rutas")
-@CrossOrigin(origins = "*") // Permite peticiones desde tu frontend en cualquier puerto
+@CrossOrigin(origins = "*")
 public class RutaController {
 
     private final RutaService rutaService;
@@ -20,15 +20,13 @@ public class RutaController {
         this.rutaService = rutaService;
     }
 
-    // 1. OBTENER TODAS LAS RUTAS
-    // GET http://localhost:8080/api/v1/rutas/
+    // Obtener todas las rutas
     @GetMapping("/")
     public ResponseEntity<List<Ruta>> obtenerTodas() {
         return ResponseEntity.ok(rutaService.obtenerTodas());
     }
 
-    // 2. OBTENER LA RUTA ACTIVA
-    // GET http://localhost:8080/api/v1/rutas/activa
+    // Obtener la ruta activa
     @GetMapping("/activa")
     public ResponseEntity<Ruta> obtenerActiva() {
         return rutaService.obtenerActiva()
@@ -36,8 +34,7 @@ public class RutaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    // 3. CREAR UNA NUEVA RUTA
-    // POST http://localhost:8080/api/v1/rutas/
+    // Crear nueva ruta
     @PostMapping("/")
     public ResponseEntity<Ruta> crearRuta(@RequestBody RutaDTO rutaDTO) {
         try {
@@ -48,8 +45,7 @@ public class RutaController {
         }
     }
 
-    // 4. ACTIVAR UNA RUTA ESPECÍFICA
-    // PUT http://localhost:8080/api/v1/rutas/{id}/activar
+    // Activar una ruta
     @PutMapping("/{id}/activar")
     public ResponseEntity<Ruta> activarRuta(@PathVariable Long id) {
         try {
@@ -60,13 +56,23 @@ public class RutaController {
         }
     }
 
-    // 5. ELIMINAR UNA RUTA
-    // DELETE http://localhost:8080/api/v1/rutas/{id}
+    // Eliminar una ruta
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarRuta(@PathVariable Long id) {
         try {
             rutaService.eliminarRuta(id);
             return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    // Editar una ruta
+    @PutMapping("/{id}")
+    public ResponseEntity<Ruta> editarRuta(@PathVariable Long id, @RequestBody RutaDTO rutaDTO) {
+        try {
+            Ruta rutaActualizada = rutaService.editarRuta(id, rutaDTO);
+            return ResponseEntity.ok(rutaActualizada);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

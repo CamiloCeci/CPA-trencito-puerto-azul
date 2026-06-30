@@ -16,24 +16,21 @@ import java.util.Optional;
 public class RutaService {
 
     private final RutaRepository rutaRepository;
-    private final EstacionRepository estacionRepository; // Asumiendo que ya tienes este repo
+    private final EstacionRepository estacionRepository;
 
     public RutaService(RutaRepository rutaRepository, EstacionRepository estacionRepository) {
         this.rutaRepository = rutaRepository;
         this.estacionRepository = estacionRepository;
     }
 
-    // 1. OBTENER TODAS LAS RUTAS
     public List<Ruta> obtenerTodas() {
         return rutaRepository.findAll();
     }
 
-    // 2. OBTENER RUTA ACTIVA
     public Optional<Ruta> obtenerActiva() {
         return rutaRepository.findByActivaTrue();
     }
 
-    // 3. CREAR RUTA
     @Transactional
     public Ruta crearRuta(RutaDTO dto) {
         Ruta nuevaRuta = new Ruta();
@@ -53,7 +50,6 @@ public class RutaService {
         return rutaRepository.save(nuevaRuta);
     }
 
-    // 4. ACTIVAR RUTA (Regla de negocio: desactiva las demás)
     @Transactional
     public Ruta activarRuta(Long id) {
         Ruta rutaAActivar = rutaRepository.findById(id)
@@ -70,12 +66,37 @@ public class RutaService {
         return rutaRepository.save(rutaAActivar);
     }
 
-    // 5. ELIMINAR RUTA
     @Transactional
     public void eliminarRuta(Long id) {
         if (!rutaRepository.existsById(id)) {
             throw new RuntimeException("La ruta no existe");
         }
         rutaRepository.deleteById(id);
+    }
+
+    @Transactional
+    public Ruta editarRuta(Long id, RutaDTO dto) {
+        Ruta rutaExistente = rutaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ruta no encontrada con ID: " + id));
+
+        // Actualizar datos básicos
+        rutaExistente.setNombre(dto.getNombre());
+
+        // Limpiar las paradas viejas para evitar duplicados
+        rutaExistente.getEstaciones().clear();
+        rutaRepository.saveAndFlush(rutaExistente); // Fuerza la limpieza en la base de datos
+
+        // Insertar el nuevo itinerario ordenado
+        int posicion = 1;
+        for (Long estacionId : dto.getEstacionesIds()) {
+            Estacion estacion = estacionRepository.findById(estacionId)
+                    .orElseThrow(() -> new RuntimeException("Estación no encontrada con ID: " + estacionId));
+
+            RutaEstacion parada = new RutaEstacion(rutaExistente, estacion, posicion);
+            rutaExistente.getEstaciones().add(parada);
+            posicion++;
+        }
+
+        return rutaRepository.save(rutaExistente);
     }
 }

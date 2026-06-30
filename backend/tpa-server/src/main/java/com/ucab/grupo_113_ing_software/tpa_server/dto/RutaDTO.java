@@ -6,6 +6,9 @@ public class RutaDTO {
     private String nombre;
     private List<Long> estacionesIds; // Ejemplo: [1, 4, 1]
 
+    public RutaDTO() {
+    }
+
     // Getters y Setters
     public String getNombre() {
         return nombre;

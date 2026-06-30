@@ -28,6 +28,13 @@ public class Estacion {
         this.longitude = longitude;
     }
 
+    public Estacion(String nombre, double latitude, double longitude) {
+        this.nombre = nombre;
+        this.contadorPersonasEnCola = 0;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public Estacion() {
     }
 
@@ -76,6 +83,5 @@ public class Estacion {
             this.contadorPersonasEnCola--;
         }
     }
-
 
 }
