@@ -34,12 +34,12 @@ export const ColaController = {
         const userStr = sessionStorage.getItem('usuarioLogueado');
         if (!userStr) return;
         const user = JSON.parse(userStr);
-        
+
         try {
             await ColaService.unirseACola(user.id, this.activeStationId);
             this.mostrarMensajeCola("¡Te has unido a la cola con éxito!");
             this.alternarModal('stationModal', false);
-            
+
             // Refresh map indicators
             if (window.MapaController) {
                 window.MapaController.userWaitingStationId = this.activeStationId;
@@ -54,7 +54,7 @@ export const ColaController = {
         const userStr = sessionStorage.getItem('usuarioLogueado');
         if (!userStr) return;
         const user = JSON.parse(userStr);
-        
+
         try {
             const status = await ColaService.obtenerEstadoSocio(user.id);
             if (!status || !status.estacion || status.estacion.id != this.activeStationId) {
@@ -70,6 +70,8 @@ export const ColaController = {
             if (window.MapaController) {
                 window.MapaController.userWaitingStationId = null;
                 this.actualizarIndicadoresMapa();
+                // Si era VIP con prioridad, eliminar el punto morado para operadores/admins
+                window.MapaController.limpiarPrioridad(user.id);
             }
         } catch (err) {
             this.mostrarMensajeCola("Error: " + err.message);
@@ -80,16 +82,18 @@ export const ColaController = {
         const userStr = sessionStorage.getItem('usuarioLogueado');
         if (!userStr) return;
         const user = JSON.parse(userStr);
-        
+
         try {
             await ColaService.unirseACola(user.id, this.activeStationId);
             this.mostrarMensajeCola("¡Te has unido a la cola de PRIORIDAD con éxito!");
             this.alternarModal('stationModal', false);
 
-            // Refresh map indicators
+            // Refresh map indicators (igual que unirseAColaVirtual)
             if (window.MapaController) {
                 window.MapaController.userWaitingStationId = this.activeStationId;
                 this.actualizarIndicadoresMapa();
+                // Registrar en localStorage para que mapaoperador/mapaadmin muestren el punto morado
+                window.MapaController.registrarPrioridad(user.id, this.activeStationId);
             }
         } catch (err) {
             this.mostrarMensajeCola("Error: " + err.message);

@@ -11,6 +11,7 @@ export const MapaController = {
     isCreatingStation: false,
     isEditingLocation: false,
     userWaitingStationId: null,
+    priorityStations: {}, // Set of stationId -> true if has VIP priority user in queue
 
     trenIconoPersonalizado: L.divIcon({
         className: 'custom-train-marker',
@@ -108,6 +109,8 @@ export const MapaController = {
 
         // El badge rojo con números solo para Administrador u Operador
         const showBadge = isStaff && data.wait > 0;
+        // El indicador morado de prioridad: solo para staff, leído desde localStorage (cross-tab)
+        const showPriority = isStaff && this._getPriorityEntries().some(e => String(e.stationId) === String(id));
         // El indicador azul solo para el Socio/VIP en su estación actual
         const isUserStation = isSocioVip && (id == this.userWaitingStationId);
 
@@ -117,6 +120,7 @@ export const MapaController = {
                 <div class="badge" id="badge-${id}" style="display: ${showBadge ? 'flex' : 'none'};">
                     ${data.wait}
                 </div>
+                <div class="priority-indicator" id="priority-indicator-${id}" style="display: ${showPriority ? 'block' : 'none'}; width: 12px; height: 12px; background-color: #7c3aed; border: 2px solid white; border-radius: 50%; position: absolute; top: -5px; left: -5px; box-shadow: 0 2px 4px rgba(0,0,0,0.25);"></div>
                 <div class="user-indicator" id="user-indicator-${id}" style="display: ${isUserStation ? 'block' : 'none'};">
                     <div class="small-blue-dot" style="width: 12px; height: 12px; background-color: #0044cc; border: 2px solid white; border-radius: 50%; position: absolute; top: -5px; right: -5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
                 </div>
@@ -235,10 +239,64 @@ export const MapaController = {
                 // Ocultar siempre para Socio/VIP
                 badge.style.display = (isStaff && data.contador > 0) ? 'flex' : 'none';
             }
+
+            // Si la cola llega a 0, limpiar TODOS los indicadores de prioridad de esa estacion
+            if (data.contador === 0) {
+                const filtered = this._getPriorityEntries().filter(e => String(e.stationId) !== String(id));
+                localStorage.setItem('tpa_priority_queue', JSON.stringify(filtered));
+                const priorityIndicator = document.getElementById(`priority-indicator-${id}`);
+                if (priorityIndicator) priorityIndicator.style.display = 'none';
+            }
+
             if (ColaController.activeStationId === id) {
                 ColaController.actualizarVisualizacionModalEstacion();
             }
         }
+    },
+
+    // Registra en localStorage que un usuario VIP se unió con prioridad a una estación
+    registrarPrioridad(userId, stationId) {
+        const entries = this._getPriorityEntries();
+        // Evitar duplicados del mismo usuario
+        const filtered = entries.filter(e => String(e.userId) !== String(userId));
+        filtered.push({ userId: String(userId), stationId: String(stationId) });
+        localStorage.setItem('tpa_priority_queue', JSON.stringify(filtered));
+        // Actualizar el propio DOM si es staff (cuando operador ve su propio mapa)
+        this._actualizarDotsPrioridad();
+    },
+
+    // Elimina de localStorage la entrada de prioridad de un usuario que salió de la cola
+    limpiarPrioridad(userId) {
+        const entries = this._getPriorityEntries();
+        const filtered = entries.filter(e => String(e.userId) !== String(userId));
+        localStorage.setItem('tpa_priority_queue', JSON.stringify(filtered));
+        this._actualizarDotsPrioridad();
+    },
+
+    // Lee el estado de prioridad desde localStorage
+    _getPriorityEntries() {
+        try {
+            const raw = localStorage.getItem('tpa_priority_queue');
+            return raw ? JSON.parse(raw) : [];
+        } catch {
+            return [];
+        }
+    },
+
+    // Actualiza todos los puntos morados del mapa según el estado actual de localStorage
+    // Solo tiene efecto visual para ADMINISTRADOR y OPERADOR
+    _actualizarDotsPrioridad() {
+        const userStr = sessionStorage.getItem('usuarioLogueado');
+        const user = userStr ? JSON.parse(userStr) : null;
+        const isStaff = user && (user.rol === 'ADMINISTRADOR' || user.rol === 'OPERADOR');
+        if (!isStaff) return;
+
+        const entries = this._getPriorityEntries();
+        Object.keys(this.stationData).forEach(id => {
+            const hasPriority = entries.some(e => String(e.stationId) === String(id));
+            const indicator = document.getElementById(`priority-indicator-${id}`);
+            if (indicator) indicator.style.display = hasPriority ? 'block' : 'none';
+        });
     },
 
     alActualizarTren(data) {
@@ -286,6 +344,14 @@ export const MapaController = {
                 toggleBtn.style.top = `${20 - scrollTop}px`;
             });
         }
+
+        // Escuchar cambios de localStorage desde otras pestañas/páginas (ej: VIP en mapavip.html)
+        // Esto permite actualizar el punto morado en mapaoperador/mapaadmin en tiempo real
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'tpa_priority_queue') {
+                this._actualizarDotsPrioridad();
+            }
+        });
     }
 };
 
