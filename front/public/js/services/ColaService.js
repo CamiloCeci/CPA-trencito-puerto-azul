@@ -29,5 +29,22 @@ export const ColaService = {
         if (response.status === 404) return null;
         if (!response.ok) throw new Error('Error al obtener estado del socio');
         return await response.json();
+    },
+
+    async reiniciarCola(estacionId) {
+        const response = await fetch(`${BASE_URL}/socio-estacion/estacion/${estacionId}/reset`, {
+            method: 'DELETE'
+        });
+        const text = await response.text();
+        let data;
+        try {
+            data = text ? JSON.parse(text) : {};
+        } catch {
+            data = { msg: text };
+        }
+        if (!response.ok) {
+            throw new Error(data.msg || data.error || `Error ${response.status}`);
+        }
+        return data; // { msg, usuariosRemovidos }
     }
 };
