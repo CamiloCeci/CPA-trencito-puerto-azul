@@ -180,6 +180,35 @@
             </div>
         </div>
 
+        <div class="modal-overlay" id="confirmResetColaModal" style="display: none;">
+            <div class="modal-card">
+                <h3>Confirmar Reinicio</h3>
+                <p class="modal-description">¿Está seguro que desea reiniciar la cola virtual de esta estación? Todos los usuarios serán removidos de la cola.</p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-cancel" onclick="alternarModal('confirmResetColaModal', false)">Cancelar</button>
+                    <button class="btn-modal-confirm" onclick="confirmarReinicioColaEstacion()">Reiniciar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="mensajeColaModal" style="display: none;">
+            <div class="modal-card" style="max-width: 400px; padding: 24px; text-align: center;">
+                <div class="status-icon-container" style="margin-bottom: 16px;">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#0044cc" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <h3>Cola Virtual</h3>
+                <p class="modal-description-status" id="mensajeColaTexto"
+                    style="margin-top: 12px; margin-bottom: 24px; color: #4b5563; font-size: 15px; line-height: 1.5;">
+                </p>
+                <div class="modal-actions-horizontal">
+                    <button class="btn-modal-confirm" style="width: 100%;" onclick="alPresionarOKCola()">OK</button>
+                </div>
+            </div>
+        </div>
+
         <div class="modal-overlay" id="createStationModal" style="display: none;">
             <div class="modal-card">
                 <h3>Crear Nueva Estación</h3>

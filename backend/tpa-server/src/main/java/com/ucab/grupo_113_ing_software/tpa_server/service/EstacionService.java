@@ -116,4 +116,16 @@ public class EstacionService {
         }
         return null;
     }
+
+    public Estacion resetContadorEstacion(Long id) {
+        Estacion estacion = estacionRepository.findById(id).orElse(null);
+        if (estacion != null) {
+            estacion.setContador(0);
+            Estacion saved = estacionRepository.save(estacion);
+            messagingTemplate.convertAndSend("/topic/estaciones",
+                    new EstacionUpdateDTO(saved.getId(), saved.getContador()));
+            return saved;
+        }
+        return null;
+    }
 }

@@ -246,6 +246,13 @@ export const MapaController = {
                 localStorage.setItem('tpa_priority_queue', JSON.stringify(filtered));
                 const priorityIndicator = document.getElementById(`priority-indicator-${id}`);
                 if (priorityIndicator) priorityIndicator.style.display = 'none';
+
+                // Si el usuario actual estaba esperando en esta estación, limpiarlo
+                if (this.userWaitingStationId == id) {
+                    this.userWaitingStationId = null;
+                    const userIndicator = document.getElementById(`user-indicator-${id}`);
+                    if (userIndicator) userIndicator.style.display = 'none';
+                }
             }
 
             if (ColaController.activeStationId === id) {

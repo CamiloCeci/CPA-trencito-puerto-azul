@@ -84,4 +84,8 @@ public class Estacion {
         }
     }
 
+    public void setContador(int valor) {
+        this.contadorPersonasEnCola = Math.max(0, valor);
+    }
+
 }

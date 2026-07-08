@@ -121,7 +121,18 @@ export const ColaController = {
     },
 
     reiniciarColaEstacion() {
-        console.log("Reiniciando cola en:", this.activeStationId);
+        this.alternarModal('stationModal', false);
+        this.alternarModal('confirmResetColaModal', true);
+    },
+
+    async confirmarReinicioColaEstacion() {
+        this.alternarModal('confirmResetColaModal', false);
+        try {
+            const data = await ColaService.reiniciarCola(this.activeStationId);
+            this.mostrarMensajeCola(`${data.msg} Se removieron ${data.usuariosRemovidos} usuarios.`);
+        } catch (err) {
+            this.mostrarMensajeCola(`Error: ${err.message}`);
+        }
     },
 
     mostrarTiempoEstimado() {
@@ -137,4 +148,5 @@ window.unirseAColaPrioridad = ColaController.unirseAColaPrioridad.bind(ColaContr
 window.eliminarseDeColaVirtual = ColaController.eliminarseDeColaVirtual.bind(ColaController);
 window.alPresionarOKCola = ColaController.alPresionarOKCola.bind(ColaController);
 window.reiniciarColaEstacion = ColaController.reiniciarColaEstacion.bind(ColaController);
+window.confirmarReinicioColaEstacion = ColaController.confirmarReinicioColaEstacion.bind(ColaController);
 window.mostrarTiempoEstimado = ColaController.mostrarTiempoEstimado.bind(ColaController);

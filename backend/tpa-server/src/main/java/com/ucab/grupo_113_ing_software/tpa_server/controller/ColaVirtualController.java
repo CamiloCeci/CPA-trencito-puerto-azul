@@ -28,8 +28,8 @@ public class ColaVirtualController {
     private final EstacionService estacionService;
 
     public ColaVirtualController(ColaVirtualService colaVirtualService,
-                                    SocioService socioService,
-                                    EstacionService estacionService) {
+            SocioService socioService,
+            EstacionService estacionService) {
         this.colaVirtualService = colaVirtualService;
         this.socioService = socioService;
         this.estacionService = estacionService;
@@ -51,7 +51,8 @@ public class ColaVirtualController {
             if (estacion == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Estación no encontrada");
             } else if (currEstacionId != null) {
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Ya estás en una cola, debes salir de la cola actual para entrar en otra.");
+                return ResponseEntity.status(HttpStatus.CONFLICT)
+                        .body("Ya estás en una cola, debes salir de la cola actual para entrar en otra.");
             }
             estacionService.subirContadorPersonasEnCola(request.estacionId());
         } else {
@@ -66,7 +67,6 @@ public class ColaVirtualController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-
     @GetMapping("/socio/{socioId}/")
     public ResponseEntity<?> getBySocioId(@PathVariable Long socioId) {
         return colaVirtualService.findBySocioId(socioId)
@@ -74,42 +74,43 @@ public class ColaVirtualController {
                 .orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).body("No tiene estación asignada"));
     }
 
-
     @GetMapping("/estacion/{estacionId}/")
     public ResponseEntity<List<ColaVirtual>> getByEstacionId(@PathVariable Long estacionId) {
         return ResponseEntity.ok(colaVirtualService.findByEstacionId(estacionId));
     }
 
-    @GetMapping("/estacion/{estacionId}/reset")
+    @DeleteMapping("/estacion/{estacionId}/reiniciar")
     public ResponseEntity<?> resetByEstacionId(@PathVariable Long estacionId) {
         try {
-            colaVirtualService.resetColaEstacion(estacionId);
-            return ResponseEntity.ok().build();
+            int removidos = colaVirtualService.resetColaEstacion(estacionId);
+            estacionService.resetContadorEstacion(estacionId);
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("msg", "Cola reiniciada exitosamente.");
+            resp.put("usuariosRemovidos", removidos);
+            return ResponseEntity.ok(resp);
         } catch (EntityNotFoundException ent) {
-            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(ent.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ent.getMessage());
         } catch (Exception ex) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
         }
     }
-
 
     @GetMapping("/esperando/")
     public ResponseEntity<List<ColaVirtual>> getAllEsperando() {
         return ResponseEntity.ok(colaVirtualService.findAllEsperando());
     }
 
-
     @GetMapping("/all/")
     public ResponseEntity<List<ColaVirtual>> getAll() {
         return ResponseEntity.ok(colaVirtualService.getAll());
     }
 
-
     @PutMapping("/socio/{socioId}/desasignar/")
     public ResponseEntity<?> desasignarEstacion(@PathVariable Long socioId) {
         Optional<ColaVirtual> est = colaVirtualService.findBySocioId(socioId);
         if (est.isEmpty() || est.get().getEstacion() == null) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Socio no encontrado en la tabla o no tiene estación asignada");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("Socio no encontrado en la tabla o no tiene estación asignada");
         }
 
         Long estacionId = est.get().getEstacion().getId();
@@ -125,7 +126,8 @@ public class ColaVirtualController {
         return ResponseEntity.ok(response);
     }
 
-
+    // Se usa para eliminar de la base de datos el registro de un socio en la cola
+    // virtual (no se usa actualmente)
     @DeleteMapping("/socio/{socioId}/")
     public ResponseEntity<?> eliminarAsignacion(@PathVariable Long socioId) {
         Optional<ColaVirtual> est = colaVirtualService.findBySocioId(socioId);
