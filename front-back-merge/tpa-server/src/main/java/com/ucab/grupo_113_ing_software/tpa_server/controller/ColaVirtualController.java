@@ -8,6 +8,8 @@ import com.ucab.grupo_113_ing_software.tpa_server.service.EstacionService;
 import com.ucab.grupo_113_ing_software.tpa_server.service.ColaVirtualService;
 import com.ucab.grupo_113_ing_software.tpa_server.service.SocioService;
 
+import jakarta.persistence.EntityNotFoundException;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +19,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+//Importaciones para anadir a la cola con prioridad (websockets)
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.beans.factory.annotation.Autowired;
+
 @RestController
 @RequestMapping("/api/v1/socio-estacion")
 @CrossOrigin(origins = "*")
 public class ColaVirtualController {
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
 
     private final ColaVirtualService colaVirtualService;
     private final SocioService socioService;
@@ -53,18 +62,36 @@ public class ColaVirtualController {
                 return ResponseEntity.status(HttpStatus.CONFLICT).body("Ya estás en una cola, debes salir de la cola actual para entrar en otra.");
             }
             estacionService.subirContadorPersonasEnCola(request.estacionId());
+            // Logica de websocket para mandar VIP en cola y emitir animacion
+            if ("VIP".equalsIgnoreCase(request.rolUsuario())) { // Puede ser el error aqui que no este encontrando el rol VIP
+                try {
+                    java.util.HashMap<String, Object> wsPayload = new java.util.HashMap<>();
+                    wsPayload.put("accion", "ACTIVAR_ANIMACION_VIP"); // Esto es lo que realmente deberia de recibir el front 
+                    wsPayload.put("estacionId", request.estacionId());
+                    wsPayload.put("isVIPActive", Boolean.TRUE);
+                    // Enviamos el contador actual para que el frontend del operador no reciba 'undefined'
+                    wsPayload.put("contador", estacion.getContador());
+
+                    String destination = "/topic/estaciones";
+                    Object payload = wsPayload;
+
+                    messagingTemplate.convertAndSend(destination, payload);
+                    System.out.println("✅ Señal VIP transmitida con éxito por WebSocket para estación: " + request.estacionId());
+                } catch (Exception e) {
+                    System.out.println("Error al enviar la señal VIP por WebSocket: " + e.getMessage());
+                }
+            }
         } else {
             if (currEstacionId != null) {
                 estacionService.bajarContadorPersonasEnCola(currEstacionId);
             }
         }
-
+        
         ColaVirtual resultado = colaVirtualService.asignarEstacion(socio, estacion);
         Map<String, Object> response = makeResponse(resultado, "Socio asignado exitosamente.");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-
 
     @GetMapping("/socio/{socioId}/")
     public ResponseEntity<?> getBySocioId(@PathVariable Long socioId) {

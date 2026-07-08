@@ -2,10 +2,19 @@ const BASE_URL = '/api/v1';
 
 export const ColaService = {
     async unirseACola(socioId, estacionId) {
+        const userStr = sessionStorage.getItem('usuarioLogueado');
+        const user = userStr ? JSON.parse(userStr) : null;
+        const rolUsuario = user ? user.rol : 'SOCIO'; // El error puede ser aca que no lo este mandando
+        // ---------------------------------------------------------------
+
         const response = await fetch(`${BASE_URL}/socio-estacion/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ socioId, estacionId })
+            body: JSON.stringify({ 
+                socioId, 
+                estacionId,
+                rolUsuario // Se agrego para poder mandarle el rol al back y evitar multiples lecturas a BD
+            })
         });
 
         if (response.status === 409) {

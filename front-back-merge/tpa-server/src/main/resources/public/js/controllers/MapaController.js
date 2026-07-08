@@ -171,26 +171,60 @@ export const MapaController = {
     },
 
     alActualizarEstacion(data) {
-        const id = data.estacionId;
-        if (this.stationData[id]) {
-            this.stationData[id].wait = data.contador;
-
+        // 1. CONTROL DE ACCIÓN VIP DESDE EL BACKEND
+        if (data && data.accion === "ACTIVAR_ANIMACION_VIP") {
+            // 🔥 FILTRO DE SEGURIDAD VISUAL: Validamos quién está mirando la pantalla
             const userStr = sessionStorage.getItem('usuarioLogueado');
             const user = userStr ? JSON.parse(userStr) : null;
             const isStaff = user && (user.rol === 'ADMINISTRADOR' || user.rol === 'OPERADOR');
 
-            const badge = document.getElementById(`badge-${id}`);
-            if (badge) {
-                badge.innerText = data.contador;
-                // Ocultar siempre para Socio/VIP
-                badge.style.display = (isStaff && data.contador > 0) ? 'flex' : 'none';
+            // Si NO es Staff (es decir, es un SOCIO regular), ignoramos la animación por completo
+            if (!isStaff) {
+                console.log("🤫 [VISTA SOCIO] Acción VIP recibida pero ignorada por restricciones de rol.");
+                return; 
             }
-            if (ColaController.activeStationId === id) {
-                ColaController.actualizarVisualizacionModalEstacion();
+
+            // --- SI ES ADMIN O OPERADOR, SÍ SE EJECUTA EL PINTADO ---
+            const idVIP = data.estacionId;
+            console.log(`📣 [WEBSOCKET CONTROL] ¡Orden VIP procesada para Staff en estación ID: ${idVIP}!`);
+            
+            if (this.stationData && this.stationData[idVIP]) {
+                this.stationData[idVIP].isVIPActive = true;
+            }
+            
+            const badge = document.getElementById(`badge-${idVIP}`);
+            if (badge) {
+                badge.style.display = 'flex';
+            }
+            
+            if (window.ColaController) {
+                window.ColaController.sincronizarBadgeMapa(idVIP);
+            }
+            return; // Termina el flujo para la señal VIP
+        }
+
+        // 2. LÓGICA NORMAL PARA SOCIOS COMUNES (YA EXISTENTE)
+        const id = data.estacionId;
+        if (this.stationData && this.stationData[id]) {
+            if (data.contador !== undefined) {
+                this.stationData[id].wait = data.contador;
+                const badge = document.getElementById(`badge-${id}`);
+                if (badge) {
+                    badge.innerText = data.contador;
+                    
+                    const userStr = sessionStorage.getItem('usuarioLogueado');
+                    const user = userStr ? JSON.parse(userStr) : null;
+                    const isStaff = user && (user.rol === 'ADMINISTRADOR' || user.rol === 'OPERADOR');
+                    badge.style.display = (isStaff && data.contador > 0) ? 'flex' : 'none';
+                }
+            }
+            if (window.ColaController && window.ColaController.activeStationId === id) {
+                window.ColaController.actualizarVisualizacionModalEstacion();
             }
         }
     },
 
+    
     alActualizarTren(data) {
         let puestos;
         if (typeof data === 'object') {

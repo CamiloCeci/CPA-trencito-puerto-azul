@@ -4,11 +4,16 @@ export const WebSocketService = {
     connect(onEstacionUpdate, onTrenUpdate) {
         const socket = new SockJS('/ws-tpa');
         this.stompClient = Stomp.over(socket);
-        this.stompClient.debug = null;
+        
+            // 🔥 MODIFICACIÓN: Activamos el debug para ver la transmisión exacta en F12
+            this.stompClient.debug = function(str) {
+                console.log('📣 [STOMP NET LOG]: ' + str);
+            };
 
-        this.stompClient.connect({}, (frame) => {
+            this.stompClient.connect({}, (frame) => {
             console.log('✅ Conectado a WebSockets');
 
+            // Aquí se recibe el JSON enviado desde el ColaVirtualController de Java
             this.stompClient.subscribe('/topic/estaciones', (message) => {
                 const data = JSON.parse(message.body);
                 if (onEstacionUpdate) onEstacionUpdate(data);
